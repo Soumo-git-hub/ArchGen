@@ -60,10 +60,10 @@ export function ComponentLibrary() {
   }
 
   return (
-    <Card className="p-4 neomorphism">
+    <Card className="p-4 neomorphism h-full flex flex-col overflow-hidden">
       <h2 className="text-lg font-semibold mb-4">Component Library</h2>
 
-      <div className="space-y-4">
+      <div className="space-y-4 overflow-auto flex-1">
         {componentCategories.map((category) => (
           <div key={category.name}>
             <h3 className="text-sm font-medium text-muted-foreground mb-2">{category.name}</h3>

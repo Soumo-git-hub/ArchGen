@@ -12,10 +12,28 @@ import { AIDiagramGenerator } from "@/components/ai-diagram-generator"
 import { SmartRequirementsParser } from "@/components/smart-requirements-parser"
 import { ExportCollaborationPanel } from "@/components/export-collaboration-panel"
 
+type Requirement = {
+  id: string
+  description: string
+  priority: string
+  category: string
+}
+
+interface Analysis {
+  complexity: string
+  estimatedTimeline: string
+  estimatedCost: string
+}
+
+interface ParsedRequirements {
+  requirements: Requirement[]
+  analysis: Analysis
+}
+
 export default function ArchitecturePlatform() {
   const [generatedArchitecture, setGeneratedArchitecture] = useState(null)
   const [isGenerating, setIsGenerating] = useState(false)
-  const [parsedRequirements, setParsedRequirements] = useState(null)
+  const [parsedRequirements, setParsedRequirements] = useState<ParsedRequirements | null>(null)
   const [activeTab, setActiveTab] = useState<"generator" | "parser">("generator")
 
   const handleArchitectureGenerated = (architecture: any) => {
@@ -41,7 +59,7 @@ export default function ArchitecturePlatform() {
     <div className="min-h-screen bg-background text-foreground dark">
       {/* Header */}
       <header className="border-b border-border bg-card neomorphism">
-        <div className="container mx-auto px-6 py-4">
+        <div className="mx-auto w-full px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10 neomorphism">
@@ -54,10 +72,6 @@ export default function ArchitecturePlatform() {
             </div>
 
             <div className="flex items-center gap-3">
-              <Badge variant="secondary" className="neomorphism">
-                <Zap className="h-3 w-3 mr-1" />
-                Gemini Flash 2.5
-              </Badge>
               <Button variant="outline" size="sm" className="neomorphism-hover bg-transparent">
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
@@ -67,10 +81,10 @@ export default function ArchitecturePlatform() {
         </div>
       </header>
 
-      <div className="container mx-auto px-6 py-6">
-        <div className="grid grid-cols-12 gap-6 h-[calc(100vh-120px)]">
+      <div className="mx-auto w-full px-4 lg:px-6 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-120px)] min-h-0">
           {/* Left Sidebar - AI Tools */}
-          <div className="col-span-3 space-y-4">
+          <div className="lg:col-span-3 space-y-6 min-h-0 overflow-auto">
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
               <TabsList className="grid w-full grid-cols-2 neomorphism">
                 <TabsTrigger value="generator">Generator</TabsTrigger>
@@ -93,8 +107,8 @@ export default function ArchitecturePlatform() {
           </div>
 
           {/* Main Canvas Area */}
-          <div className="col-span-6">
-            <Card className="h-full neomorphism">
+          <div className="lg:col-span-6 min-h-0">
+            <Card className="h-full neomorphism flex flex-col overflow-hidden">
               <div className="p-4 border-b border-border">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -114,14 +128,14 @@ export default function ArchitecturePlatform() {
                 </div>
               </div>
 
-              <div className="flex-1 p-4">
+              <div className="flex-1 p-4 min-h-0">
                 <ArchitectureCanvas architecture={generatedArchitecture} isGenerating={isGenerating} />
               </div>
             </Card>
           </div>
 
           {/* Right Sidebar - Analysis & Export */}
-          <div className="col-span-3 space-y-4">
+          <div className="lg:col-span-3 space-y-6 min-h-0 overflow-auto">
             <ExportCollaborationPanel
               architecture={generatedArchitecture}
               onExport={handleExport}
