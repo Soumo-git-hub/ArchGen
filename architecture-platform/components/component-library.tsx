@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { useState } from "react"
 
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -54,9 +55,44 @@ const componentCategories = [
 ]
 
 export function ComponentLibrary() {
+  const [draggedComponent, setDraggedComponent] = useState<string | null>(null)
+
   const handleDragStart = (e: React.DragEvent, component: any) => {
-    e.dataTransfer.setData("application/json", JSON.stringify(component))
+    console.log("Drag start:", component)
+    
+    // Set up drag data with proper MIME type and ensure clean transfer
+    const componentData = JSON.stringify(component)
+    e.dataTransfer.setData("application/json", componentData)
     e.dataTransfer.effectAllowed = "copy"
+    
+    // Add visual feedback immediately
+    setDraggedComponent(component.type)
+    
+    // Optimize drag image for smoother experience
+    try {
+      const dragImage = e.currentTarget.cloneNode(true) as HTMLElement
+      dragImage.style.transform = 'rotate(2deg)' // Subtle rotation
+      dragImage.style.opacity = '0.9'
+      dragImage.style.pointerEvents = 'none' // Ensure no interference
+      e.dataTransfer.setDragImage(dragImage, 75, 50)
+    } catch (error) {
+      console.log('Using default drag image')
+    }
+  }
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    console.log("Drag end - cleaning up")
+    
+    // Clean up drag state immediately for responsive feedback
+    setDraggedComponent(null)
+    
+    // Ensure data transfer is properly cleared
+    try {
+      e.dataTransfer.clearData()
+    } catch (error) {
+      // Some browsers may not allow clearing data on drag end
+      console.log('DataTransfer clearData not available')
+    }
   }
 
   return (
@@ -73,7 +109,13 @@ export function ComponentLibrary() {
                   key={component.type}
                   draggable
                   onDragStart={(e) => handleDragStart(e, component)}
-                  className="flex items-center gap-3 p-3 bg-card rounded-lg border border-border cursor-grab hover:bg-accent/50 transition-colors neomorphism-hover"
+                  onDragEnd={handleDragEnd}
+                  className={`flex items-center gap-3 p-3 bg-card rounded-lg border border-border cursor-grab transition-all duration-200 select-none ${
+                    draggedComponent === component.type
+                      ? "opacity-40 scale-95 bg-primary/10 border-primary cursor-grabbing"
+                      : "hover:bg-accent/50 hover:scale-[1.02] hover:shadow-md neomorphism-hover active:scale-95"
+                  }`}
+                  title={`Drag ${component.label} to canvas`}
                 >
                   <div className={`p-2 rounded-md ${component.color}`}>
                     <component.icon className="h-4 w-4 text-white" />
@@ -91,7 +133,7 @@ export function ComponentLibrary() {
 
       <div className="mt-4 pt-4 border-t border-border">
         <Badge variant="outline" className="text-xs">
-          Drag components to canvas
+          {draggedComponent ? `Dragging: ${draggedComponent}` : "Drag components to canvas"}
         </Badge>
       </div>
     </Card>

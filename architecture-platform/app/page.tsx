@@ -129,7 +129,11 @@ export default function ArchitecturePlatform() {
               </div>
 
               <div className="flex-1 p-4 min-h-0">
-                <ArchitectureCanvas architecture={generatedArchitecture} isGenerating={isGenerating} />
+                <ArchitectureCanvas 
+                  architecture={generatedArchitecture} 
+                  isGenerating={isGenerating}
+                  onArchitectureChange={setGeneratedArchitecture}
+                />
               </div>
             </Card>
           </div>

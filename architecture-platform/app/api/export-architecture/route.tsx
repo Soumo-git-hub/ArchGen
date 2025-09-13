@@ -41,8 +41,16 @@ export async function POST(request: NextRequest) {
         filename = "architecture.svg"
         break
 
+      case "png":
+      case "pdf":
+        // For image formats, generate SVG and let client handle conversion
+        const svgForImage = generateSVG(architecture, options)
+        content = svgForImage
+        contentType = format === "png" ? "image/svg+xml" : "image/svg+xml"
+        filename = `architecture.${format}`
+        break
+
       default:
-        // For PNG/PDF, we'd use a library like Puppeteer or Canvas
         content = JSON.stringify(exportData, null, 2)
         contentType = "application/json"
         filename = `architecture.${format}`
@@ -204,32 +212,97 @@ function generateSVG(architecture: any, options: any): string {
   const components = architecture?.components || []
   const connections = architecture?.connections || []
 
+  // Apply background color based on options
+  const bgColor = options.backgroundColor === 'dark' ? '#1f2937' : 
+                 options.backgroundColor === 'light' ? '#ffffff' : 'transparent'
+  
   let svg = `<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <style>
-      .component { fill: #374151; stroke: #6b7280; stroke-width: 2; }
-      .component-text { fill: #f1f5f9; font-family: Arial, sans-serif; font-size: 12px; text-anchor: middle; }
-      .connection { stroke: #8b5cf6; stroke-width: 2; fill: none; }
+      .component { 
+        fill: ${options.backgroundColor === 'dark' ? '#374151' : '#f3f4f6'}; 
+        stroke: ${options.backgroundColor === 'dark' ? '#6b7280' : '#9ca3af'}; 
+        stroke-width: 2; 
+      }
+      .component-text { 
+        fill: ${options.backgroundColor === 'dark' ? '#f1f5f9' : '#1f2937'}; 
+        font-family: Arial, sans-serif; 
+        font-size: 14px; 
+        text-anchor: middle; 
+        dominant-baseline: middle;
+      }
+      .connection { 
+        stroke: #8b5cf6; 
+        stroke-width: 2; 
+        fill: none; 
+        marker-end: url(#arrowhead);
+      }
+      .placeholder-text {
+        fill: ${options.backgroundColor === 'dark' ? '#9ca3af' : '#6b7280'};
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
     </style>
-  </defs>
-`
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+            refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#8b5cf6" />
+    </marker>
+  </defs>`
 
-  // Draw connections
-  connections.forEach((conn: any) => {
-    svg += `  <line x1="${conn.from.x}" y1="${conn.from.y}" x2="${conn.to.x}" y2="${conn.to.y}" class="connection" />
-`
-  })
+  // Add background rectangle if not transparent
+  if (bgColor !== 'transparent') {
+    svg += `
+  <rect width="100%" height="100%" fill="${bgColor}" />`
+  }
 
-  // Draw components
-  components.forEach((comp: any) => {
-    svg += `  <rect x="${comp.x}" y="${comp.y}" width="${comp.width}" height="${comp.height}" class="component" />
-`
-    if (options.includeLabels) {
-      svg += `  <text x="${comp.x + comp.width / 2}" y="${comp.y + comp.height / 2}" class="component-text">${comp.label}</text>
-`
+  // If no components, show placeholder
+  if (components.length === 0) {
+    svg += `
+  <text x="400" y="280" class="placeholder-text">No Architecture Components</text>
+  <text x="400" y="310" class="placeholder-text">Generate or add components to see the diagram</text>`
+  } else {
+    // Draw connections if enabled
+    if (options.includeConnections) {
+      connections.forEach((conn: any) => {
+        const fromX = conn.from?.x || 100
+        const fromY = conn.from?.y || 100
+        const toX = conn.to?.x || 200
+        const toY = conn.to?.y || 200
+        
+        svg += `
+  <line x1="${fromX}" y1="${fromY}" x2="${toX}" y2="${toY}" class="connection" />`
+      })
     }
-  })
 
-  svg += `</svg>`
+    // Draw components
+    components.forEach((comp: any, index: number) => {
+      const x = comp.x || (100 + (index * 150))
+      const y = comp.y || (100 + (index % 3) * 120)
+      const width = comp.width || 120
+      const height = comp.height || 80
+      const label = comp.label || `Component ${index + 1}`
+      
+      // Draw component rectangle
+      svg += `
+  <rect x="${x}" y="${y}" width="${width}" height="${height}" class="component" rx="8" />`
+      
+      // Add component label if enabled
+      if (options.includeLabels && label) {
+        svg += `
+  <text x="${x + width / 2}" y="${y + height / 2 - 8}" class="component-text">${label}</text>`
+      }
+      
+      // Add component type indicator
+      if (comp.type) {
+        svg += `
+  <text x="${x + width / 2}" y="${y + height / 2 + 12}" class="component-text" style="font-size: 10px; opacity: 0.7;">${comp.type}</text>`
+      }
+    })
+  }
+
+  svg += `
+</svg>`
   return svg
 }

@@ -44,8 +44,9 @@ Please provide a detailed JSON response with the following structure:
   ],
   "connections": [
     {
-      "from": {"x": 180, "y": 140},
-      "to": {"x": 300, "y": 200},
+      "id": "unique_connection_id",
+      "from": {"x": 180, "y": 140, "componentId": "source_component_id"},
+      "to": {"x": 300, "y": 200, "componentId": "target_component_id"},
       "type": "data|async|sync|event",
       "label": "Connection description",
       "protocol": "HTTP|WebSocket|gRPC|Message Queue"
@@ -90,8 +91,9 @@ Please provide a detailed JSON response with the following structure:
   ],
   "connections": [
     {
-      "from": {"x": 180, "y": 140},
-      "to": {"x": 300, "y": 200},
+      "id": "unique_connection_id",
+      "from": {"x": 180, "y": 140, "componentId": "source_component_id"},
+      "to": {"x": 300, "y": 200, "componentId": "target_component_id"},
       "type": "data|async|sync|event",
       "label": "Connection description",
       "protocol": "HTTP|WebSocket|gRPC|Message Queue"
@@ -115,12 +117,14 @@ IMPORTANT GUIDELINES:
 2. Use realistic coordinates that create a clear, readable layout
 3. Include proper component spacing (at least 150px between components)
 4. Select appropriate technologies based on complexity level and requirements
-5. Ensure all connections have proper from/to coordinates that align with component positions
-6. Include security, scalability, and cost considerations
-7. Make the architecture production-ready and follow industry best practices
-8. Consider the specified user load for scaling decisions
-9. Include monitoring and logging components for production systems
-10. Add appropriate caching layers for performance
+5. Ensure all connections reference actual component IDs in both from and to objects
+6. Connection coordinates should match component center positions (x + width/2, y + height/2)
+7. Include security, scalability, and cost considerations
+8. Make the architecture production-ready and follow industry best practices
+9. Consider the specified user load for scaling decisions
+10. Include monitoring and logging components for production systems
+11. Add appropriate caching layers for performance
+12. CRITICAL: Always include componentId references in connections to ensure proper linking
 
 Focus on creating a practical, implementable architecture that addresses all requirements.
 `
@@ -174,12 +178,12 @@ Focus on creating a practical, implementable architecture that addresses all req
     if (!architecture.technologies) architecture.technologies = []
 
     return NextResponse.json(architecture)
-  } catch (error) {
+  } catch (error: any) {
     console.error("Architecture generation error:", error)
     return NextResponse.json(
       {
         error: "Failed to generate architecture",
-        details: error.message,
+        details: error?.message || "Unknown error",
       },
       { status: 500 },
     )

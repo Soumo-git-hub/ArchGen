@@ -135,14 +135,25 @@ export function ExportCollaborationPanel({ architecture, onExport, onShare }: Ex
 
       if (response.ok) {
         const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement("a")
-        a.href = url
-        a.download = `architecture.${exportFormat}`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
+        
+        // For PNG and PDF, we need to convert SVG on the client side
+        if (exportFormat === "png") {
+          const svgText = await blob.text()
+          await convertSVGToPNG(svgText)
+        } else if (exportFormat === "pdf") {
+          const svgText = await blob.text()
+          await convertSVGToPDF(svgText)
+        } else {
+          // Direct download for SVG, JSON, Terraform, Docker
+          const url = window.URL.createObjectURL(blob)
+          const a = document.createElement("a")
+          a.href = url
+          a.download = `architecture.${exportFormat}`
+          document.body.appendChild(a)
+          a.click()
+          window.URL.revokeObjectURL(url)
+          document.body.removeChild(a)
+        }
       }
 
       if (onExport) {
@@ -150,7 +161,255 @@ export function ExportCollaborationPanel({ architecture, onExport, onShare }: Ex
       }
     } catch (error) {
       console.error("Export failed:", error)
+      alert(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
+  }
+
+  const convertSVGToPNG = async (svgContent: string) => {
+    return new Promise<void>((resolve, reject) => {
+      try {
+        // Create a canvas element
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'))
+          return
+        }
+        
+        // Set canvas size based on resolution
+        const multiplier = exportOptions.resolution === 'high' ? 3 : exportOptions.resolution === 'medium' ? 2 : 1
+        canvas.width = 800 * multiplier
+        canvas.height = 600 * multiplier
+        
+        // Create an image from SVG
+        const img = new Image()
+        
+        img.onload = () => {
+          try {
+            // Set background color
+            if (exportOptions.backgroundColor !== 'transparent') {
+              ctx.fillStyle = exportOptions.backgroundColor === 'dark' ? '#1f2937' : '#ffffff'
+              ctx.fillRect(0, 0, canvas.width, canvas.height)
+            }
+            
+            // Draw the SVG image
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+            
+            // Convert to PNG and download
+            canvas.toBlob((blob) => {
+              if (blob) {
+                const url = window.URL.createObjectURL(blob)
+                const a = document.createElement("a")
+                a.href = url
+                a.download = "architecture.png"
+                document.body.appendChild(a)
+                a.click()
+                window.URL.revokeObjectURL(url)
+                document.body.removeChild(a)
+                resolve()
+              } else {
+                reject(new Error('Failed to create PNG blob'))
+              }
+            }, 'image/png')
+            
+            URL.revokeObjectURL(img.src)
+          } catch (err) {
+            reject(err)
+          }
+        }
+        
+        img.onerror = () => {
+          reject(new Error('Failed to load SVG image'))
+        }
+        
+        // Convert SVG to data URL
+        const svgBlob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' })
+        img.src = URL.createObjectURL(svgBlob)
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  const convertSVGToPDF = async (svgContent: string) => {
+    return new Promise<void>((resolve, reject) => {
+      try {
+        // Create a high-resolution canvas for PDF
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'))
+          return
+        }
+        
+        // Set high resolution for PDF (300 DPI equivalent)
+        const scale = 3 // High resolution multiplier
+        canvas.width = 800 * scale
+        canvas.height = 600 * scale
+        
+        // Create an image from SVG
+        const img = new Image()
+        
+        img.onload = () => {
+          try {
+            // Set white background for PDF
+            ctx.fillStyle = '#ffffff'
+            ctx.fillRect(0, 0, canvas.width, canvas.height)
+            
+            // Draw the SVG image at high resolution
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+            
+            // Convert canvas to image data
+            const imgData = canvas.toDataURL('image/png')
+            
+            // Generate PDF content using basic PDF structure
+            const pdfContent = generatePDFWithImage(imgData, canvas.width, canvas.height)
+            
+            // Create and download PDF
+            const pdfBlob = new Blob([pdfContent], { type: 'application/pdf' })
+            const url = window.URL.createObjectURL(pdfBlob)
+            const a = document.createElement("a")
+            a.href = url
+            a.download = "architecture.pdf"
+            document.body.appendChild(a)
+            a.click()
+            window.URL.revokeObjectURL(url)
+            document.body.removeChild(a)
+            
+            URL.revokeObjectURL(img.src)
+            resolve()
+          } catch (err) {
+            reject(err)
+          }
+        }
+        
+        img.onerror = () => {
+          reject(new Error('Failed to load SVG image for PDF'))
+        }
+        
+        // Convert SVG to data URL
+        const svgBlob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' })
+        img.src = URL.createObjectURL(svgBlob)
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  const generatePDFWithImage = (imageDataURL: string, width: number, height: number): string => {
+    // Create a basic PDF structure with embedded image
+    const pdfHeader = '%PDF-1.4\n'
+    
+    // Remove data URL prefix to get base64 data
+    const base64Data = imageDataURL.replace(/^data:image\/png;base64,/, '')
+    
+    // Calculate object positions
+    let currentPos = pdfHeader.length
+    
+    // Catalog object
+    const catalogObj = `1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+`
+    const catalogPos = currentPos
+    currentPos += catalogObj.length
+    
+    // Pages object
+    const pagesObj = `2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+`
+    const pagesPos = currentPos
+    currentPos += pagesObj.length
+    
+    // Page object
+    const pageObj = `3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 ${width / 3} ${height / 3}]
+/Resources <<
+/XObject <<
+/Im1 4 0 R
+>>
+>>
+/Contents 5 0 R
+>>
+endobj
+`
+    const pagePos = currentPos
+    currentPos += pageObj.length
+    
+    // Image object
+    const imageObj = `4 0 obj
+<<
+/Type /XObject
+/Subtype /Image
+/Width ${width}
+/Height ${height}
+/BitsPerComponent 8
+/ColorSpace /DeviceRGB
+/Filter /DCTDecode
+/Length ${base64Data.length}
+>>
+stream
+${base64Data}
+endstream
+endobj
+`
+    const imagePos = currentPos
+    currentPos += imageObj.length
+    
+    // Content stream object
+    const contentStream = `q
+${width / 3} 0 0 ${height / 3} 0 0 cm
+/Im1 Do
+Q
+`
+    const contentObj = `5 0 obj
+<<
+/Length ${contentStream.length}
+>>
+stream
+${contentStream}
+endstream
+endobj
+`
+    const contentPos = currentPos
+    currentPos += contentObj.length
+    
+    // Cross-reference table
+    const xrefPos = currentPos
+    const xref = `xref
+0 6
+0000000000 65535 f 
+${catalogPos.toString().padStart(10, '0')} 00000 n 
+${pagesPos.toString().padStart(10, '0')} 00000 n 
+${pagePos.toString().padStart(10, '0')} 00000 n 
+${imagePos.toString().padStart(10, '0')} 00000 n 
+${contentPos.toString().padStart(10, '0')} 00000 n 
+`
+    
+    // Trailer
+    const trailer = `trailer
+<<
+/Size 6
+/Root 1 0 R
+>>
+startxref
+${xrefPos}
+%%EOF
+`
+    
+    // Combine all parts and return as string
+    return pdfHeader + catalogObj + pagesObj + pageObj + imageObj + contentObj + xref + trailer
   }
 
   const generateShareLink = async () => {
