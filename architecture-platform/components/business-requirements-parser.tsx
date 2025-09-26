@@ -52,49 +52,50 @@ export function BusinessRequirementsParser() {
   }
 
   return (
-    <Card className="p-4 neomorphism">
-      <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-        <FileText className="h-5 w-5 text-primary" />
+    <Card className="p-3 neomorphism">
+      <h2 className="text-base font-semibold mb-3 flex items-center gap-2">
+        <FileText className="h-4 w-4 text-primary" />
         Requirements Parser
       </h2>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         <Textarea
-          placeholder="Paste your business requirements, user stories, or project documentation here. The AI will automatically categorize and prioritize them..."
+          placeholder="Paste business requirements, user stories, or project documentation here..."
           value={rawText}
           onChange={(e) => setRawText(e.target.value)}
-          className="min-h-[120px] neomorphism-inset"
+          className="min-h-[80px] neomorphism-inset text-xs"
         />
 
         <Button
           onClick={parseRequirements}
           disabled={!rawText.trim() || isProcessing}
           className="w-full neomorphism-hover"
+          size="sm"
         >
           {isProcessing ? (
             <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2" />
               Processing...
             </>
           ) : (
             <>
-              <Brain className="h-4 w-4 mr-2" />
+              <Brain className="h-3 w-3 mr-2" />
               Parse Requirements
             </>
           )}
         </Button>
 
         {parsedRequirements.length > 0 && (
-          <div className="space-y-3">
-            <h3 className="font-medium flex items-center gap-2">
-              <Zap className="h-4 w-4 text-primary" />
+          <div className="space-y-2">
+            <h3 className="font-medium flex items-center gap-2 text-sm">
+              <Zap className="h-3 w-3 text-primary" />
               Parsed Requirements
             </h3>
 
             {parsedRequirements.map((req, index) => (
-              <div key={index} className="p-3 bg-muted/50 rounded-lg neomorphism-inset">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-sm">{req.category}</h4>
+              <div key={index} className="p-2 bg-muted/50 rounded-md neomorphism-inset">
+                <div className="flex items-center justify-between mb-1.5">
+                  <h4 className="font-medium text-xs">{req.category}</h4>
                   <Badge
                     variant="outline"
                     className={`text-xs ${getPriorityColor(req.priority)} text-white border-none`}
@@ -104,8 +105,8 @@ export function BusinessRequirementsParser() {
                 </div>
                 <ul className="space-y-1">
                   {req.items.map((item, itemIndex) => (
-                    <li key={itemIndex} className="text-xs text-muted-foreground flex items-start gap-2">
-                      <span className="w-1 h-1 bg-primary rounded-full mt-2 flex-shrink-0" />
+                    <li key={itemIndex} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                      <span className="w-1 h-1 bg-primary rounded-full mt-1.5 flex-shrink-0" />
                       {item}
                     </li>
                   ))}

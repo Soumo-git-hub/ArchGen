@@ -70,7 +70,7 @@ export function ExportCollaborationPanel({ architecture, onExport, onShare }: Ex
   const [comments, setComments] = useState<Comment[]>([
     {
       id: "1",
-      author: "John Doe",
+      author: "Abhi",
       avatar: "/placeholder.svg?height=32&width=32",
       content: "Should we consider adding a load balancer here?",
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
@@ -80,7 +80,7 @@ export function ExportCollaborationPanel({ architecture, onExport, onShare }: Ex
     },
     {
       id: "2",
-      author: "Jane Smith",
+      author: "Nikhil",
       avatar: "/placeholder.svg?height=32&width=32",
       content: "The database connection looks good. Consider adding Redis for caching.",
       timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
@@ -93,24 +93,24 @@ export function ExportCollaborationPanel({ architecture, onExport, onShare }: Ex
   const [collaborators, setCollaborators] = useState<Collaborator[]>([
     {
       id: "1",
-      name: "John Doe",
-      email: "john@example.com",
+      name: "Abhi",
+      email: "abhi@example.com",
       avatar: "/placeholder.svg?height=32&width=32",
       role: "editor",
       status: "online",
     },
     {
       id: "2",
-      name: "Jane Smith",
-      email: "jane@example.com",
+      name: "Nikhil",
+      email: "nikhil@example.com",
       avatar: "/placeholder.svg?height=32&width=32",
       role: "viewer",
       status: "online",
     },
     {
       id: "3",
-      name: "Mike Johnson",
-      email: "mike@example.com",
+      name: "Shubham",
+      email: "shubham@example.com",
       role: "editor",
       status: "offline",
       lastSeen: new Date(Date.now() - 30 * 60 * 1000),
@@ -496,81 +496,81 @@ ${xrefPos}
   }
 
   return (
-    <Card className="p-4 neomorphism">
-      <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-        <Share2 className="h-5 w-5 text-primary" />
+    <Card className="p-3 neomorphism">
+      <h2 className="text-base font-semibold mb-3 flex items-center gap-2">
+        <Share2 className="h-4 w-4 text-primary" />
         Export & Collaboration
       </h2>
 
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="space-y-4">
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="space-y-3">
         <TabsList className="grid w-full grid-cols-3 neomorphism">
-          <TabsTrigger value="export">Export</TabsTrigger>
-          <TabsTrigger value="share">Share</TabsTrigger>
-          <TabsTrigger value="collaborate">Collaborate</TabsTrigger>
+          <TabsTrigger value="export" className="text-xs">Export</TabsTrigger>
+          <TabsTrigger value="share" className="text-xs">Share</TabsTrigger>
+          <TabsTrigger value="collaborate" className="text-xs">Collaborate</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="export" className="space-y-4">
-          <div className="space-y-3">
+        <TabsContent value="export" className="space-y-3">
+          <div className="space-y-2">
             <div>
-              <label className="text-sm font-medium mb-2 block">Export Format</label>
+              <label className="text-xs font-medium mb-1 block">Export Format</label>
               <Select value={exportFormat} onValueChange={setExportFormat}>
-                <SelectTrigger className="neomorphism-inset">
+                <SelectTrigger className="neomorphism-inset h-8">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="png">
                     <div className="flex items-center gap-2">
-                      <FileImage className="h-4 w-4" />
-                      PNG Image
+                      <FileImage className="h-3 w-3" />
+                      PNG
                     </div>
                   </SelectItem>
                   <SelectItem value="svg">
                     <div className="flex items-center gap-2">
-                      <FileImage className="h-4 w-4" />
-                      SVG Vector
+                      <FileImage className="h-3 w-3" />
+                      SVG
                     </div>
                   </SelectItem>
                   <SelectItem value="pdf">
                     <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      PDF Document
+                      <FileText className="h-3 w-3" />
+                      PDF
                     </div>
                   </SelectItem>
                   <SelectItem value="json">
                     <div className="flex items-center gap-2">
-                      <Code className="h-4 w-4" />
-                      JSON Data
+                      <Code className="h-3 w-3" />
+                      JSON
                     </div>
                   </SelectItem>
                   <SelectItem value="terraform">
                     <div className="flex items-center gap-2">
-                      <Code className="h-4 w-4" />
-                      Terraform Config
+                      <Code className="h-3 w-3" />
+                      Terraform
                     </div>
                   </SelectItem>
                   <SelectItem value="docker">
                     <div className="flex items-center gap-2">
-                      <Code className="h-4 w-4" />
-                      Docker Compose
+                      <Code className="h-3 w-3" />
+                      Docker
                     </div>
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Export Options</label>
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium">Options</label>
+              <div className="space-y-1">
+                <label className="flex items-center gap-2 text-xs">
                   <input
                     type="checkbox"
                     checked={exportOptions.includeLabels}
                     onChange={(e) => setExportOptions({ ...exportOptions, includeLabels: e.target.checked })}
                     className="rounded"
                   />
-                  Include component labels
+                  Include labels
                 </label>
-                <label className="flex items-center gap-2 text-sm">
+                <label className="flex items-center gap-2 text-xs">
                   <input
                     type="checkbox"
                     checked={exportOptions.includeConnections}
@@ -582,14 +582,14 @@ ${xrefPos}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-sm font-medium mb-1 block">Background</label>
+                <label className="text-xs font-medium mb-1 block">Background</label>
                 <Select
                   value={exportOptions.backgroundColor}
                   onValueChange={(value) => setExportOptions({ ...exportOptions, backgroundColor: value })}
                 >
-                  <SelectTrigger className="neomorphism-inset">
+                  <SelectTrigger className="neomorphism-inset h-8">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -600,54 +600,54 @@ ${xrefPos}
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium mb-1 block">Resolution</label>
+                <label className="text-xs font-medium mb-1 block">Resolution</label>
                 <Select
                   value={exportOptions.resolution}
                   onValueChange={(value) => setExportOptions({ ...exportOptions, resolution: value })}
                 >
-                  <SelectTrigger className="neomorphism-inset">
+                  <SelectTrigger className="neomorphism-inset h-8">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">Low (1x)</SelectItem>
-                    <SelectItem value="medium">Medium (2x)</SelectItem>
-                    <SelectItem value="high">High (3x)</SelectItem>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            <Button onClick={handleExport} disabled={!architecture} className="w-full neomorphism-hover" size="lg">
-              <Download className="h-4 w-4 mr-2" />
-              Export Architecture
+            <Button onClick={handleExport} disabled={!architecture} className="w-full neomorphism-hover" size="sm">
+              <Download className="h-3 w-3 mr-2" />
+              Export
             </Button>
           </div>
         </TabsContent>
 
-        <TabsContent value="share" className="space-y-4">
-          <div className="space-y-3">
+        <TabsContent value="share" className="space-y-3">
+          <div className="space-y-2">
             <div>
-              <label className="text-sm font-medium mb-2 block">Share Permissions</label>
+              <label className="text-xs font-medium mb-1 block">Permissions</label>
               <Select value={sharePermissions} onValueChange={setSharePermissions}>
-                <SelectTrigger className="neomorphism-inset">
+                <SelectTrigger className="neomorphism-inset h-8">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="view">
                     <div className="flex items-center gap-2">
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-3 w-3" />
                       View Only
                     </div>
                   </SelectItem>
                   <SelectItem value="comment">
                     <div className="flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4" />
+                      <MessageSquare className="h-3 w-3" />
                       View & Comment
                     </div>
                   </SelectItem>
                   <SelectItem value="edit">
                     <div className="flex items-center gap-2">
-                      <Edit3 className="h-4 w-4" />
+                      <Edit3 className="h-3 w-3" />
                       View & Edit
                     </div>
                   </SelectItem>
@@ -655,70 +655,70 @@ ${xrefPos}
               </Select>
             </div>
 
-            <Button onClick={generateShareLink} className="w-full neomorphism-hover bg-transparent" variant="outline">
-              <Link className="h-4 w-4 mr-2" />
-              Generate Share Link
+            <Button onClick={generateShareLink} className="w-full neomorphism-hover bg-transparent" variant="outline" size="sm">
+              <Link className="h-3 w-3 mr-2" />
+              Generate Link
             </Button>
 
             {shareLink && (
-              <div className="p-3 bg-muted/50 rounded-lg neomorphism-inset">
-                <div className="flex items-center gap-2 mb-2">
-                  <Link className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">Share Link</span>
+              <div className="p-2 bg-muted/50 rounded-lg neomorphism-inset">
+                <div className="flex items-center gap-2 mb-1">
+                  <Link className="h-3 w-3 text-primary" />
+                  <span className="text-xs font-medium">Share Link</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Input value={shareLink} readOnly className="text-xs" />
-                  <Button size="sm" variant="outline" onClick={copyShareLink}>
+                <div className="flex items-center gap-1">
+                  <Input value={shareLink} readOnly className="text-xs h-6" />
+                  <Button size="sm" variant="outline" onClick={copyShareLink} className="h-6 w-6 p-0">
                     <Copy className="h-3 w-3" />
                   </Button>
                 </div>
               </div>
             )}
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Share via Email</label>
-              <div className="flex gap-2">
-                <Input placeholder="Enter email addresses..." className="neomorphism-inset" />
-                <Button variant="outline" size="sm" className="neomorphism-hover bg-transparent">
-                  <Mail className="h-4 w-4" />
+            <div className="space-y-1">
+              <label className="text-xs font-medium">Email Share</label>
+              <div className="flex gap-1">
+                <Input placeholder="Enter emails..." className="neomorphism-inset h-6 text-xs" />
+                <Button variant="outline" size="sm" className="neomorphism-hover bg-transparent h-6 w-6 p-0">
+                  <Mail className="h-3 w-3" />
                 </Button>
               </div>
             </div>
           </div>
         </TabsContent>
 
-        <TabsContent value="collaborate" className="space-y-4">
-          <div className="space-y-4">
+        <TabsContent value="collaborate" className="space-y-3">
+          <div className="space-y-3">
             {/* Active Collaborators */}
             <div>
-              <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Active Collaborators ({collaborators.filter((c) => c.status === "online").length})
+              <h3 className="text-xs font-medium mb-2 flex items-center gap-2">
+                <Users className="h-3 w-3" />
+                Collaborators ({collaborators.filter((c) => c.status === "online").length})
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {collaborators.map((collaborator) => (
                   <div
                     key={collaborator.id}
-                    className="flex items-center justify-between p-2 bg-muted/50 rounded-lg neomorphism-inset"
+                    className="flex items-center justify-between p-1.5 bg-muted/50 rounded-md neomorphism-inset"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <div className="relative">
-                        <Avatar className="h-8 w-8">
+                        <Avatar className="h-6 w-6">
                           <AvatarImage src={collaborator.avatar || "/placeholder.svg"} />
                           <AvatarFallback>{collaborator.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div
-                          className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-background ${getStatusColor(
+                          className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-background ${getStatusColor(
                             collaborator.status,
                           )}`}
                         />
                       </div>
-                      <div>
-                        <div className="text-sm font-medium">{collaborator.name}</div>
-                        <div className="text-xs text-muted-foreground">{collaborator.email}</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-medium truncate">{collaborator.name}</div>
+                        <div className="text-xs text-muted-foreground truncate">{collaborator.email}</div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <Badge
                         variant="outline"
                         className={`text-xs ${getRoleColor(collaborator.role)} text-white border-none`}
@@ -730,7 +730,7 @@ ${xrefPos}
                           variant="ghost"
                           size="sm"
                           onClick={() => removeCollaborator(collaborator.id)}
-                          className="h-6 w-6 p-0"
+                          className="h-5 w-5 p-0"
                         >
                           <X className="h-3 w-3" />
                         </Button>
@@ -743,17 +743,17 @@ ${xrefPos}
 
             {/* Invite Collaborator */}
             <div>
-              <h3 className="text-sm font-medium mb-3">Invite Collaborator</h3>
-              <div className="space-y-2">
+              <h3 className="text-xs font-medium mb-2">Invite</h3>
+              <div className="space-y-1.5">
                 <Input
-                  placeholder="Enter email address..."
+                  placeholder="Email address..."
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  className="neomorphism-inset"
+                  className="neomorphism-inset h-6 text-xs"
                 />
-                <div className="flex gap-2">
+                <div className="flex gap-1">
                   <Select value={inviteRole} onValueChange={setInviteRole}>
-                    <SelectTrigger className="neomorphism-inset">
+                    <SelectTrigger className="neomorphism-inset h-6">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -761,8 +761,8 @@ ${xrefPos}
                       <SelectItem value="editor">Editor</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button onClick={inviteCollaborator} className="neomorphism-hover">
-                    <Plus className="h-4 w-4 mr-2" />
+                  <Button onClick={inviteCollaborator} className="neomorphism-hover h-6 px-2">
+                    <Plus className="h-3 w-3 mr-1" />
                     Invite
                   </Button>
                 </div>
@@ -771,27 +771,27 @@ ${xrefPos}
 
             {/* Comments */}
             <div>
-              <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
+              <h3 className="text-xs font-medium mb-2 flex items-center gap-2">
+                <MessageSquare className="h-3 w-3" />
                 Comments ({comments.length})
               </h3>
-              <div className="space-y-3 max-h-48 overflow-y-auto">
+              <div className="space-y-2 max-h-32 overflow-y-auto">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="p-3 bg-muted/50 rounded-lg neomorphism-inset">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-6 w-6">
+                  <div key={comment.id} className="p-2 bg-muted/50 rounded-md neomorphism-inset">
+                    <div className="flex items-start justify-between mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <Avatar className="h-4 w-4">
                           <AvatarImage src={comment.avatar || "/placeholder.svg"} />
                           <AvatarFallback>{comment.author.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        <span className="text-sm font-medium">{comment.author}</span>
+                        <span className="text-xs font-medium">{comment.author}</span>
                         <span className="text-xs text-muted-foreground">{comment.timestamp.toLocaleTimeString()}</span>
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => resolveComment(comment.id)}
-                        className="h-6 w-6 p-0"
+                        className="h-4 w-4 p-0"
                       >
                         {comment.resolved ? (
                           <CheckCircle className="h-3 w-3 text-green-500" />
@@ -800,20 +800,20 @@ ${xrefPos}
                         )}
                       </Button>
                     </div>
-                    <p className="text-sm text-muted-foreground">{comment.content}</p>
+                    <p className="text-xs text-muted-foreground">{comment.content}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="flex gap-2 mt-3">
+              <div className="flex gap-1 mt-2">
                 <Textarea
-                  placeholder="Add a comment..."
+                  placeholder="Add comment..."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  className="min-h-[60px] neomorphism-inset resize-none"
+                  className="min-h-[40px] neomorphism-inset resize-none text-xs"
                 />
-                <Button onClick={addComment} className="neomorphism-hover">
-                  <Send className="h-4 w-4" />
+                <Button onClick={addComment} className="neomorphism-hover h-8 w-8 p-0">
+                  <Send className="h-3 w-3" />
                 </Button>
               </div>
             </div>

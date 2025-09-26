@@ -35,6 +35,7 @@ export default function ArchitecturePlatform() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [parsedRequirements, setParsedRequirements] = useState<ParsedRequirements | null>(null)
   const [activeTab, setActiveTab] = useState<"generator" | "parser">("generator")
+  const [currentView, setCurrentView] = useState<"system" | "business" | "technical">("system")
 
   const handleArchitectureGenerated = (architecture: any) => {
     setGeneratedArchitecture(architecture)
@@ -66,8 +67,8 @@ export default function ArchitecturePlatform() {
                 <Brain className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">ArchitectAI</h1>
-                <p className="text-sm text-muted-foreground">AI-Powered System Architecture Generator</p>
+                <h1 className="text-xl font-bold text-foreground">ArchGen</h1>
+                <p className="text-sm text-muted-foreground">AI-Powered Architecture Generator</p>
               </div>
             </div>
 
@@ -81,35 +82,36 @@ export default function ArchitecturePlatform() {
         </div>
       </header>
 
-      <div className="mx-auto w-full px-4 lg:px-6 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-120px)] min-h-0">
-          {/* Left Sidebar - AI Tools */}
-          <div className="lg:col-span-3 space-y-6 min-h-0 overflow-auto">
+      <div className="mx-auto w-full px-3 lg:px-4 py-4">
+        <div className="grid grid-cols-1 xl:grid-cols-16 gap-4 h-[calc(100vh-100px)] min-h-0">
+          {/* Left Sidebar - AI Tools & Components (More Compact) */}
+          <div className="xl:col-span-4 space-y-4 min-h-0 overflow-auto">
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
               <TabsList className="grid w-full grid-cols-2 neomorphism">
                 <TabsTrigger value="generator">Generator</TabsTrigger>
                 <TabsTrigger value="parser">Parser</TabsTrigger>
               </TabsList>
 
-              <div className="mt-4">
+              <div className="mt-3">
                 {activeTab === "generator" && (
                   <AIDiagramGenerator
                     onArchitectureGenerated={handleArchitectureGenerated}
                     parsedRequirements={parsedRequirements}
+                    viewType={currentView}
                   />
                 )}
                 {activeTab === "parser" && <SmartRequirementsParser onRequirementsParsed={handleRequirementsParsed} />}
               </div>
             </Tabs>
 
-            {/* Component Library */}
-            <ComponentLibrary />
+            {/* Component Library - More Compact */}
+            <ComponentLibrary viewType={currentView} />
           </div>
 
-          {/* Main Canvas Area */}
-          <div className="lg:col-span-6 min-h-0">
+          {/* Main Canvas Area - Expanded */}
+          <div className="xl:col-span-8 min-h-0">
             <Card className="h-full neomorphism flex flex-col overflow-hidden">
-              <div className="p-4 border-b border-border">
+              <div className="p-3 border-b border-border">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold flex items-center gap-2">
                     <Layers className="h-5 w-5 text-primary" />
@@ -117,39 +119,40 @@ export default function ArchitecturePlatform() {
                   </h2>
 
                   <div className="flex items-center gap-2">
-                    <Tabs defaultValue="system" className="w-auto">
+                    <Tabs value={currentView} onValueChange={(value) => setCurrentView(value as any)} className="w-auto">
                       <TabsList className="neomorphism">
-                        <TabsTrigger value="system">System View</TabsTrigger>
-                        <TabsTrigger value="business">Business View</TabsTrigger>
-                        <TabsTrigger value="technical">Technical View</TabsTrigger>
+                        <TabsTrigger value="system">System</TabsTrigger>
+                        <TabsTrigger value="business">Business</TabsTrigger>
+                        <TabsTrigger value="technical">Technical</TabsTrigger>
                       </TabsList>
                     </Tabs>
                   </div>
                 </div>
               </div>
 
-              <div className="flex-1 p-4 min-h-0">
+              <div className="flex-1 p-3 min-h-0">
                 <ArchitectureCanvas 
                   architecture={generatedArchitecture} 
                   isGenerating={isGenerating}
                   onArchitectureChange={setGeneratedArchitecture}
+                  viewType={currentView}
                 />
               </div>
             </Card>
           </div>
 
-          {/* Right Sidebar - Analysis & Export */}
-          <div className="lg:col-span-3 space-y-6 min-h-0 overflow-auto">
+          {/* Right Sidebar - Export & Analysis (More Compact) */}
+          <div className="xl:col-span-4 space-y-4 min-h-0 overflow-auto">
             <ExportCollaborationPanel
               architecture={generatedArchitecture}
               onExport={handleExport}
               onShare={handleShare}
             />
 
-            {/* Requirements Summary */}
+            {/* Requirements Summary - More Compact */}
             {parsedRequirements && (
-              <Card className="p-4 neomorphism">
-                <h2 className="text-lg font-semibold mb-4">Requirements Summary</h2>
+              <Card className="p-3 neomorphism">
+                <h2 className="text-base font-semibold mb-3">Requirements Summary</h2>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Categories:</span>

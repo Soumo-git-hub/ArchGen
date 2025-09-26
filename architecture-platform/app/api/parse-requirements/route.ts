@@ -1,9 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const GEMINI_API_KEY = "AIzaSyDr2BmHYOoVQGu8cm5pbhqNomfCtjLOEzE"
+const GEMINI_API_KEY = process.env.API_KEY
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent"
 
 export async function POST(request: NextRequest) {
+  // Validate API key is configured
+  if (!GEMINI_API_KEY) {
+    console.error('Missing API_KEY environment variable')
+    return NextResponse.json(
+      { error: 'Server configuration error: API key not configured' },
+      { status: 500 }
+    )
+  }
+
   try {
     const { text } = await request.json()
 

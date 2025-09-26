@@ -3,9 +3,10 @@ import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
+import '../styles/enhanced-components.css'
 
 export const metadata: Metadata = {
-  title: 'Sys Arc',
+  title: 'ArchGen',
   generator: 'v0.app',
 }
 

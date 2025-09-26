@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -72,6 +72,17 @@ export function SmartRequirementsParser({ onRequirementsParsed }: { onRequiremen
   const [isRecording, setIsRecording] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const recognitionRef = useRef<any>(null)
+
+  // Cleanup effect for speech recognition
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+        recognitionRef.current = null
+      }
+    }
+  }, [])
 
   const parseRequirements = async () => {
     if (!rawText.trim()) return
@@ -256,27 +267,98 @@ export function SmartRequirementsParser({ onRequirementsParsed }: { onRequiremen
   }
 
   const startVoiceRecording = () => {
-    if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
-      const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition
+    if (isRecording) {
+      stopVoiceRecording()
+      return
+    }
+
+    // Check for browser support
+    if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
+      alert("Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.")
+      return
+    }
+
+    try {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition
       const recognition = new SpeechRecognition()
 
       recognition.continuous = true
       recognition.interimResults = true
       recognition.lang = "en-US"
+      recognition.maxAlternatives = 1
 
-      recognition.onstart = () => setIsRecording(true)
-      recognition.onend = () => setIsRecording(false)
-
-      recognition.onresult = (event) => {
-        let transcript = ""
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript
-        }
-        setRawText((prev) => prev + " " + transcript)
+      recognition.onstart = () => {
+        setIsRecording(true)
+        console.log("Voice recording started")
       }
 
+      recognition.onend = () => {
+        setIsRecording(false)
+        console.log("Voice recording ended")
+      }
+
+      recognition.onresult = (event: any) => {
+        let finalTranscript = ""
+        let interimTranscript = ""
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript
+          } else {
+            interimTranscript += transcript
+          }
+        }
+
+        if (finalTranscript) {
+          setRawText((prev) => prev + (prev ? " " : "") + finalTranscript)
+        }
+      }
+
+      recognition.onerror = (event: any) => {
+        console.error("Speech recognition error:", event.error)
+        setIsRecording(false)
+        
+        let errorMessage = "Speech recognition error: "
+        switch (event.error) {
+          case "no-speech":
+            errorMessage += "No speech was detected. Please try again."
+            break
+          case "audio-capture":
+            errorMessage += "No microphone was found. Please ensure a microphone is connected."
+            break
+          case "not-allowed":
+            errorMessage += "Permission to use microphone was denied. Please allow microphone access."
+            break
+          case "network":
+            errorMessage += "Network error occurred. Please check your connection."
+            break
+          default:
+            errorMessage += event.error
+        }
+        
+        alert(errorMessage)
+      }
+
+      recognition.onnomatch = () => {
+        console.log("No speech was recognized")
+      }
+
+      // Store recognition instance in ref for cleanup
+      recognitionRef.current = recognition
       recognition.start()
+    } catch (error) {
+      console.error("Failed to start voice recording:", error)
+      alert("Failed to start voice recording. Please try again.")
     }
+  }
+
+  const stopVoiceRecording = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop()
+      recognitionRef.current = null
+    }
+    setIsRecording(false)
   }
 
   const getPriorityColor = (priority: string) => {
@@ -384,7 +466,11 @@ Example:
 
         <TabsContent value="voice" className="space-y-4">
           <div className="text-center p-8 border-2 border-dashed border-border rounded-lg neomorphism-inset">
-            <div className={`mx-auto mb-4 p-4 rounded-full ${isRecording ? "bg-red-500" : "bg-muted"}`}>
+            <div className={`mx-auto mb-4 p-4 rounded-full transition-all duration-300 ${
+              isRecording 
+                ? "bg-red-500 animate-pulse shadow-lg shadow-red-500/50" 
+                : "bg-muted hover:bg-muted/80"
+            }`}>
               {isRecording ? (
                 <Mic className="h-8 w-8 text-white" />
               ) : (
@@ -392,16 +478,24 @@ Example:
               )}
             </div>
             <p className="text-sm text-muted-foreground mb-4">
-              {isRecording ? "Recording... Speak your requirements" : "Click to start voice recording"}
+              {isRecording 
+                ? "Recording... Speak your requirements clearly" 
+                : "Click to start voice recording. Make sure your microphone is enabled."}
             </p>
             <Button
               variant={isRecording ? "destructive" : "outline"}
               onClick={startVoiceRecording}
               className="neomorphism-hover bg-transparent"
+              disabled={!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)}
             >
               {isRecording ? <MicOff className="h-4 w-4 mr-2" /> : <Mic className="h-4 w-4 mr-2" />}
               {isRecording ? "Stop Recording" : "Start Recording"}
             </Button>
+            {(!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) && (
+              <p className="text-xs text-red-500 mt-2">
+                Voice input is not supported in this browser. Please use Chrome, Edge, or Safari.
+              </p>
+            )}
           </div>
           {rawText && (
             <Textarea

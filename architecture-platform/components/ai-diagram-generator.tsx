@@ -29,7 +29,7 @@ interface ArchitectureTemplate {
   components: string[]
 }
 
-const architectureTemplates: ArchitectureTemplate[] = [
+const systemArchitectureTemplates: ArchitectureTemplate[] = [
   {
     id: "ecommerce",
     name: "E-commerce Platform",
@@ -102,13 +102,120 @@ const architectureTemplates: ArchitectureTemplate[] = [
   },
 ]
 
+const businessArchitectureTemplates: ArchitectureTemplate[] = [
+  {
+    id: "customer-journey",
+    name: "Customer Journey",
+    description: "End-to-end customer experience from awareness to retention",
+    icon: Globe,
+    complexity: "medium",
+    estimatedTime: "2-3 minutes",
+    components: [
+      "Customer Acquisition",
+      "Customer Onboarding",
+      "Order Processing",
+      "Customer Support",
+      "Customer Retention",
+    ],
+  },
+  {
+    id: "order-fulfillment",
+    name: "Order Fulfillment Process",
+    description: "Complete order processing from placement to delivery",
+    icon: TrendingUp,
+    complexity: "medium",
+    estimatedTime: "2-4 minutes",
+    components: [
+      "Order Placement",
+      "Payment Processing",
+      "Inventory Check",
+      "Fulfillment",
+      "Shipping",
+      "Delivery Tracking",
+    ],
+  },
+  {
+    id: "supply-chain",
+    name: "Supply Chain Management",
+    description: "End-to-end supply chain from suppliers to customers",
+    icon: Database,
+    complexity: "complex",
+    estimatedTime: "3-5 minutes",
+    components: [
+      "Supplier Management",
+      "Procurement",
+      "Inventory Management",
+      "Quality Control",
+      "Distribution",
+      "Customer Delivery",
+    ],
+  },
+  {
+    id: "product-development",
+    name: "Product Development Lifecycle",
+    description: "Product ideation, development, and market launch process",
+    icon: Lightbulb,
+    complexity: "complex",
+    estimatedTime: "3-4 minutes",
+    components: [
+      "Market Research",
+      "Product Design",
+      "Development",
+      "Testing & QA",
+      "Marketing",
+      "Product Launch",
+    ],
+  },
+  {
+    id: "financial-operations",
+    name: "Financial Operations",
+    description: "Financial planning, budgeting, and reporting processes",
+    icon: TrendingUp,
+    complexity: "medium",
+    estimatedTime: "2-3 minutes",
+    components: [
+      "Budget Planning",
+      "Financial Analysis",
+      "Accounts Payable",
+      "Accounts Receivable",
+      "Financial Reporting",
+      "Compliance",
+    ],
+  },
+  {
+    id: "hr-processes",
+    name: "Human Resources",
+    description: "Employee lifecycle from recruitment to offboarding",
+    icon: Shield,
+    complexity: "medium",
+    estimatedTime: "2-4 minutes",
+    components: [
+      "Recruitment",
+      "Employee Onboarding",
+      "Performance Management",
+      "Training & Development",
+      "Employee Relations",
+      "Offboarding",
+    ],
+  },
+]
+
 export function AIDiagramGenerator({
   onArchitectureGenerated,
   parsedRequirements,
+  viewType = 'system'
 }: {
   onArchitectureGenerated: (architecture: any) => void
   parsedRequirements?: any
+  viewType?: 'system' | 'business' | 'technical'
 }) {
+  // Get templates based on view type
+  const getArchitectureTemplates = () => {
+    return viewType === 'business' ? businessArchitectureTemplates : systemArchitectureTemplates
+  }
+
+  const architectureTemplates = getArchitectureTemplates()
+
   const [requirements, setRequirements] = useState("")
   const [projectName, setProjectName] = useState("")
   const [selectedTemplate, setSelectedTemplate] = useState<string>("")
@@ -129,7 +236,7 @@ export function AIDiagramGenerator({
 
       setRequirements(requirementsText)
       setComplexity(parsedRequirements.analysis?.complexity || "medium")
-      setProjectName(parsedRequirements.analysis?.projectName || "AI Generated Project")
+      setProjectName(parsedRequirements.analysis?.projectName || "ArchGen Project")
     }
   }, [parsedRequirements])
 
@@ -214,21 +321,23 @@ export function AIDiagramGenerator({
         const template = architectureTemplates.find((t) => t.id === selectedTemplate)
         requestBody = {
           template: template,
-          projectName: projectName || template?.name || "Untitled Project",
+          projectName: projectName || template?.name || "ArchGen Project",
           complexity,
           userLoad,
           budget,
           timeline,
           customRequirements: requirements,
+          viewType, // Add viewType to the request
         }
       } else {
         requestBody = {
           requirements,
-          projectName: projectName || "Untitled Project",
+          projectName: projectName || "ArchGen Project",
           complexity,
           userLoad,
           budget,
           timeline,
+          viewType, // Add viewType to the request
         }
       }
 
@@ -287,7 +396,7 @@ export function AIDiagramGenerator({
             AI Architecture Generator
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Powered by Gemini Flash 2.5 - Generate production-ready system architectures
+            Generate production-ready system architectures
           </p>
         </div>
         <Badge variant="secondary" className="neomorphism">

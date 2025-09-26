@@ -57,9 +57,10 @@ interface ArchitectureCanvasProps {
   architecture: any
   isGenerating: boolean
   onArchitectureChange?: (architecture: any) => void
+  viewType?: 'system' | 'business' | 'technical'
 }
 
-export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureChange }: ArchitectureCanvasProps) {
+export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureChange, viewType = 'system' }: ArchitectureCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
@@ -177,9 +178,58 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
   const canUndo = historyIndex > 0
   const canRedo = historyIndex < history.length - 1
   
-  // Helper function to get category color
+  // Helper function to get category color based on view type
   const getCategoryColor = (component: Component, colorType: 'base' | 'hover' | 'selected' | 'border' | 'highlight' | 'icon') => {
-    const categoryColors = {
+    // Business View Color Schemes
+    const businessCategoryColors = {
+      // Business Processes
+      process: {
+        base: "#1e40af",
+        hover: "#1d4ed8",
+        selected: "#1e3a8a",
+        border: "#3b82f6",
+        highlight: "#60a5fa",
+        icon: "#dbeafe"
+      },
+      // Business Actors
+      actor: {
+        base: "#7c3aed",
+        hover: "#8b5cf6",
+        selected: "#6d28d9",
+        border: "#a855f7",
+        highlight: "#c4b5fd",
+        icon: "#ede9fe"
+      },
+      // Business Data
+      data: {
+        base: "#059669",
+        hover: "#10b981",
+        selected: "#047857",
+        border: "#34d399",
+        highlight: "#6ee7b7",
+        icon: "#d1fae5"
+      },
+      // Business Events
+      event: {
+        base: "#dc2626",
+        hover: "#ef4444",
+        selected: "#b91c1c",
+        border: "#f87171",
+        highlight: "#fca5a5",
+        icon: "#fee2e2"
+      },
+      default: {
+        base: "#374151",
+        hover: "#4b5563",
+        selected: "#1f2937",
+        border: "#6b7280",
+        highlight: "#4b5563",
+        icon: "#8b5cf6"
+      }
+    }
+    
+    // System View Color Schemes (existing)
+    const systemCategoryColors = {
       infrastructure: {
         base: "#374151",
         hover: "#4b5563",
@@ -222,8 +272,24 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
       }
     }
     
-    const colors = component.category && categoryColors[component.category as keyof typeof categoryColors]
-      ? categoryColors[component.category as keyof typeof categoryColors]
+    // Auto-categorize business components based on type
+    const getBusinessCategory = (type: string) => {
+      if (type.includes('process') || type.includes('mgmt') || type.includes('workflow')) return 'process'
+      if (type.includes('customer') || type.includes('admin') || type.includes('partner') || type.includes('supplier')) return 'actor'
+      if (type.includes('data') || type.includes('catalog') || type.includes('analytics')) return 'data'
+      if (type.includes('placed') || type.includes('completed') || type.includes('registered') || type.includes('updated')) return 'event'
+      return 'default'
+    }
+    
+    const categoryColors = viewType === 'business' ? businessCategoryColors : systemCategoryColors
+    
+    let categoryKey = component.category
+    if (viewType === 'business' && !categoryKey) {
+      categoryKey = getBusinessCategory(component.type)
+    }
+    
+    const colors = categoryKey && categoryColors[categoryKey as keyof typeof categoryColors] 
+      ? categoryColors[categoryKey as keyof typeof categoryColors] 
       : categoryColors.default
       
     return colors[colorType as keyof typeof colors]
@@ -727,53 +793,13 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
     const isHovered = hoveredComponent === component.id
     const isBeingDragged = isDraggingComponent && selected
     
-    // Category-based color schemes
-    const categoryColors = {
-      infrastructure: {
-        base: "#374151",
-        hover: "#4b5563",
-        selected: "#1f2937",
-        border: "#6b7280",
-        highlight: "#4b5563",
-        icon: "#8b5cf6"
-      },
-      application: {
-        base: "#4b5563",
-        hover: "#6b7280",
-        selected: "#111827",
-        border: "#9ca3af",
-        highlight: "#6b7280",
-        icon: "#3b82f6"
-      },
-      database: {
-        base: "#44403c",
-        hover: "#5c5753",
-        selected: "#1c1917",
-        border: "#78716c",
-        highlight: "#5c5753",
-        icon: "#f59e0b"
-      },
-      service: {
-        base: "#4c1d95",
-        hover: "#5b21b6",
-        selected: "#1e1b4b",
-        border: "#8b5cf6",
-        highlight: "#5b21b6",
-        icon: "#c084fc"
-      },
-      default: {
-        base: "#374151",
-        hover: "#4b5563",
-        selected: "#1f2937",
-        border: "#6b7280",
-        highlight: "#4b5563",
-        icon: "#8b5cf6"
-      }
-    }
-    
-    const colors = category && categoryColors[category as keyof typeof categoryColors] 
-      ? categoryColors[category as keyof typeof categoryColors] 
-      : categoryColors.default
+    // Use the updated getCategoryColor function to get colors based on view type
+    const baseColor = getCategoryColor(component, 'base')
+    const hoverColor = getCategoryColor(component, 'hover')
+    const selectedColor = getCategoryColor(component, 'selected')
+    const borderColor = getCategoryColor(component, 'border')
+    const highlightColor = getCategoryColor(component, 'highlight')
+    const iconColor = getCategoryColor(component, 'icon')
 
     // Enhanced shadow for dragging state
     const shadowBlur = isBeingDragged ? 20 : selected ? 12 : isHovered ? 10 : 8
@@ -790,17 +816,129 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
     const offsetX = isBeingDragged ? 2 : 0
     const offsetY = isBeingDragged ? 2 : 0
 
-    // Component background with elevation offset
-    ctx.fillStyle = selected ? colors.selected : isHovered ? colors.hover : colors.base
-    ctx.fillRect(x + offsetX, y + offsetY, width, height)
+    // Component background with elevation offset - different shapes for business view
+    if (viewType === 'business') {
+      // Business components use different shapes
+      const getBusinessShape = (componentType: string) => {
+        if (componentType.includes('process') || componentType.includes('mgmt') || componentType.includes('workflow')) {
+          return 'roundedRect' // Processes - rounded rectangles
+        }
+        if (componentType.includes('customer') || componentType.includes('admin') || componentType.includes('partner') || componentType.includes('supplier')) {
+          return 'oval' // Actors - ovals
+        }
+        if (componentType.includes('data') || componentType.includes('catalog') || componentType.includes('analytics')) {
+          return 'parallelogram' // Data - parallelograms
+        }
+        if (componentType.includes('placed') || componentType.includes('completed') || componentType.includes('registered') || componentType.includes('updated')) {
+          return 'hexagon' // Events - hexagons
+        }
+        return 'rect' // Default rectangle
+      }
+      
+      const shape = getBusinessShape(type)
+      
+      ctx.fillStyle = selected ? selectedColor : isHovered ? hoverColor : baseColor
+      
+      if (shape === 'oval') {
+        // Draw oval for actors
+        ctx.beginPath()
+        ctx.ellipse(x + width/2 + offsetX, y + height/2 + offsetY, width/2, height/2, 0, 0, 2 * Math.PI)
+        ctx.fill()
+      } else if (shape === 'roundedRect') {
+        // Draw rounded rectangle for processes
+        ctx.beginPath()
+        ctx.roundRect(x + offsetX, y + offsetY, width, height, 12)
+        ctx.fill()
+      } else if (shape === 'parallelogram') {
+        // Draw parallelogram for data
+        const skew = 15
+        ctx.beginPath()
+        ctx.moveTo(x + skew + offsetX, y + offsetY)
+        ctx.lineTo(x + width + offsetX, y + offsetY)
+        ctx.lineTo(x + width - skew + offsetX, y + height + offsetY)
+        ctx.lineTo(x + offsetX, y + height + offsetY)
+        ctx.closePath()
+        ctx.fill()
+      } else if (shape === 'hexagon') {
+        // Draw hexagon for events
+        const hexSize = Math.min(width, height) / 2
+        const centerX = x + width/2 + offsetX
+        const centerY = y + height/2 + offsetY
+        ctx.beginPath()
+        for (let i = 0; i < 6; i++) {
+          const angle = (Math.PI / 3) * i
+          const hx = centerX + hexSize * Math.cos(angle)
+          const hy = centerY + hexSize * Math.sin(angle)
+          if (i === 0) ctx.moveTo(hx, hy)
+          else ctx.lineTo(hx, hy)
+        }
+        ctx.closePath()
+        ctx.fill()
+      } else {
+        // Default rectangle
+        ctx.fillRect(x + offsetX, y + offsetY, width, height)
+      }
+    } else {
+      // System view - standard rectangles
+      ctx.fillStyle = selected ? selectedColor : isHovered ? hoverColor : baseColor
+      ctx.fillRect(x + offsetX, y + offsetY, width, height)
+    }
 
-    // Inner highlight for neomorphism with elevation
+    // Inner highlight for neomorphism with elevation - match shape for business view
     ctx.shadowColor = "rgba(255, 255, 255, 0.05)"
     ctx.shadowOffsetX = -2
     ctx.shadowOffsetY = -2
     ctx.shadowBlur = 4
-    ctx.fillStyle = selected ? colors.highlight : isHovered ? colors.highlight : colors.base
-    ctx.fillRect(x + 2 + offsetX, y + 2 + offsetY, width - 4, height - 4)
+    ctx.fillStyle = selected ? highlightColor : isHovered ? highlightColor : baseColor
+    
+    if (viewType === 'business') {
+      const getBusinessShape = (componentType: string) => {
+        if (componentType.includes('process') || componentType.includes('mgmt') || componentType.includes('workflow')) return 'roundedRect'
+        if (componentType.includes('customer') || componentType.includes('admin') || componentType.includes('partner') || componentType.includes('supplier')) return 'oval'
+        if (componentType.includes('data') || componentType.includes('catalog') || componentType.includes('analytics')) return 'parallelogram'
+        if (componentType.includes('placed') || componentType.includes('completed') || componentType.includes('registered') || componentType.includes('updated')) return 'hexagon'
+        return 'rect'
+      }
+      
+      const shape = getBusinessShape(type)
+      
+      if (shape === 'oval') {
+        ctx.beginPath()
+        ctx.ellipse(x + width/2 + offsetX, y + height/2 + offsetY, width/2 - 2, height/2 - 2, 0, 0, 2 * Math.PI)
+        ctx.fill()
+      } else if (shape === 'roundedRect') {
+        ctx.beginPath()
+        ctx.roundRect(x + 2 + offsetX, y + 2 + offsetY, width - 4, height - 4, 10)
+        ctx.fill()
+      } else if (shape === 'parallelogram') {
+        const skew = 15
+        ctx.beginPath()
+        ctx.moveTo(x + skew + 2 + offsetX, y + 2 + offsetY)
+        ctx.lineTo(x + width - 2 + offsetX, y + 2 + offsetY)
+        ctx.lineTo(x + width - skew - 2 + offsetX, y + height - 2 + offsetY)
+        ctx.lineTo(x + 2 + offsetX, y + height - 2 + offsetY)
+        ctx.closePath()
+        ctx.fill()
+      } else if (shape === 'hexagon') {
+        const hexSize = Math.min(width, height) / 2 - 2
+        const centerX = x + width/2 + offsetX
+        const centerY = y + height/2 + offsetY
+        ctx.beginPath()
+        for (let i = 0; i < 6; i++) {
+          const angle = (Math.PI / 3) * i
+          const hx = centerX + hexSize * Math.cos(angle)
+          const hy = centerY + hexSize * Math.sin(angle)
+          if (i === 0) ctx.moveTo(hx, hy)
+          else ctx.lineTo(hx, hy)
+        }
+        ctx.closePath()
+        ctx.fill()
+      } else {
+        ctx.fillRect(x + 2 + offsetX, y + 2 + offsetY, width - 4, height - 4)
+      }
+    } else {
+      ctx.fillRect(x + 2 + offsetX, y + 2 + offsetY, width - 4, height - 4)
+    }
 
     // Reset shadow
     ctx.shadowColor = "transparent"
@@ -808,10 +946,58 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
     ctx.shadowOffsetX = 0
     ctx.shadowOffsetY = 0
 
-    // Component border with enhanced visibility when dragging
-    ctx.strokeStyle = isBeingDragged ? "#8b5cf6" : selected ? colors.border : isHovered ? colors.border : "#6b7280"
+    // Component border with enhanced visibility when dragging - match shape for business view
+    ctx.strokeStyle = isBeingDragged ? "#8b5cf6" : selected ? borderColor : isHovered ? borderColor : "#6b7280"
     ctx.lineWidth = isBeingDragged ? 4 : selected ? 3 : isHovered ? 2 : 1
-    ctx.strokeRect(x + offsetX, y + offsetY, width, height)
+    
+    if (viewType === 'business') {
+      const getBusinessShape = (componentType: string) => {
+        if (componentType.includes('process') || componentType.includes('mgmt') || componentType.includes('workflow')) return 'roundedRect'
+        if (componentType.includes('customer') || componentType.includes('admin') || componentType.includes('partner') || componentType.includes('supplier')) return 'oval'
+        if (componentType.includes('data') || componentType.includes('catalog') || componentType.includes('analytics')) return 'parallelogram'
+        if (componentType.includes('placed') || componentType.includes('completed') || componentType.includes('registered') || componentType.includes('updated')) return 'hexagon'
+        return 'rect'
+      }
+      
+      const shape = getBusinessShape(type)
+      
+      if (shape === 'oval') {
+        ctx.beginPath()
+        ctx.ellipse(x + width/2 + offsetX, y + height/2 + offsetY, width/2, height/2, 0, 0, 2 * Math.PI)
+        ctx.stroke()
+      } else if (shape === 'roundedRect') {
+        ctx.beginPath()
+        ctx.roundRect(x + offsetX, y + offsetY, width, height, 12)
+        ctx.stroke()
+      } else if (shape === 'parallelogram') {
+        const skew = 15
+        ctx.beginPath()
+        ctx.moveTo(x + skew + offsetX, y + offsetY)
+        ctx.lineTo(x + width + offsetX, y + offsetY)
+        ctx.lineTo(x + width - skew + offsetX, y + height + offsetY)
+        ctx.lineTo(x + offsetX, y + height + offsetY)
+        ctx.closePath()
+        ctx.stroke()
+      } else if (shape === 'hexagon') {
+        const hexSize = Math.min(width, height) / 2
+        const centerX = x + width/2 + offsetX
+        const centerY = y + height/2 + offsetY
+        ctx.beginPath()
+        for (let i = 0; i < 6; i++) {
+          const angle = (Math.PI / 3) * i
+          const hx = centerX + hexSize * Math.cos(angle)
+          const hy = centerY + hexSize * Math.sin(angle)
+          if (i === 0) ctx.moveTo(hx, hy)
+          else ctx.lineTo(hx, hy)
+        }
+        ctx.closePath()
+        ctx.stroke()
+      } else {
+        ctx.strokeRect(x + offsetX, y + offsetY, width, height)
+      }
+    } else {
+      ctx.strokeRect(x + offsetX, y + offsetY, width, height)
+    }
 
     // Component icon area with elevation
     const iconSize = 24
@@ -819,7 +1005,7 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
     const iconY = y + 8 + offsetY
     
     // Use component's color if available, otherwise use category color
-    const iconBgColor = color ? getColorFromTailwind(color) : colors.icon
+    const iconBgColor = color ? getColorFromTailwind(color) : iconColor
     ctx.fillStyle = iconBgColor
     ctx.fillRect(iconX, iconY, iconSize, iconSize)
 
@@ -937,18 +1123,34 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
     const displayLabel = isEditing ? tempConnectionLabel : label
     const isHovered = hoveredConnection === connection.id
 
-    // Connection style based on type
-    const styles = {
-      data: { color: "#8b5cf6", width: 2, dash: [] },
-      async: { color: "#22c55e", width: 2, dash: [5, 5] },
-      sync: { color: "#3b82f6", width: 3, dash: [] },
-      event: { color: "#f59e0b", width: 2, dash: [3, 3] },
-      dependency: { color: "#ec4899", width: 2, dash: [4, 4] },
-      api: { color: "#0ea5e9", width: 2, dash: [] },
-      message: { color: "#fbbf24", width: 2, dash: [2, 2] }
+    // Connection styles based on view type and connection type
+    const getConnectionStyles = () => {
+      if (viewType === 'business') {
+        return {
+          workflow: { color: "#3b82f6", width: 3, dash: [] },
+          dataflow: { color: "#10b981", width: 2, dash: [] },
+          interaction: { color: "#8b5cf6", width: 2, dash: [3, 3] },
+          triggers: { color: "#f59e0b", width: 2, dash: [5, 5] },
+          dependency: { color: "#ef4444", width: 2, dash: [4, 4] },
+          communication: { color: "#06b6d4", width: 2, dash: [2, 4] },
+          default: { color: "#6b7280", width: 2, dash: [] }
+        }
+      } else {
+        return {
+          data: { color: "#8b5cf6", width: 2, dash: [] },
+          async: { color: "#22c55e", width: 2, dash: [5, 5] },
+          sync: { color: "#3b82f6", width: 3, dash: [] },
+          event: { color: "#f59e0b", width: 2, dash: [3, 3] },
+          dependency: { color: "#ec4899", width: 2, dash: [4, 4] },
+          api: { color: "#0ea5e9", width: 2, dash: [] },
+          message: { color: "#fbbf24", width: 2, dash: [2, 2] },
+          default: { color: "#6b7280", width: 2, dash: [] }
+        }
+      }
     }
 
-    const style = styles[type as keyof typeof styles] || styles.data
+    const styles = getConnectionStyles()
+    const style = styles[type as keyof typeof styles] || styles.default
 
     ctx.strokeStyle = selected ? "#ef4444" : style.color
     ctx.lineWidth = selected ? style.width + 1 : style.width

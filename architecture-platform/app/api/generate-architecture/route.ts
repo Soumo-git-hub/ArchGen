@@ -1,133 +1,116 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-const GEMINI_API_KEY = "AIzaSyDr2BmHYOoVQGu8cm5pbhqNomfCtjLOEzE"
+const GEMINI_API_KEY = process.env.API_KEY
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent"
 
 export async function POST(request: NextRequest) {
+  // Validate API key is configured
+  if (!GEMINI_API_KEY) {
+    console.error('Missing API_KEY environment variable')
+    return NextResponse.json(
+      { error: 'Server configuration error: API key not configured' },
+      { status: 500 }
+    )
+  }
+
   try {
     const body = await request.json()
-    const { requirements, projectName, template, complexity, userLoad, budget, timeline, customRequirements } = body
+    const { requirements, projectName, template, complexity, userLoad, budget, timeline, customRequirements, viewType = 'system' } = body
 
+    // Create a simpler, more focused prompt to avoid API errors
     let prompt = ""
+    
+    if (viewType === 'business') {
+      prompt = `Generate a business architecture diagram as JSON.
 
-    if (template) {
-      // Template-based generation
-      prompt = `
-You are an expert system architect. Generate a comprehensive system architecture based on the following template and specifications:
+Project: ${projectName || 'ArchGen Business Architecture'}
+Requirements: ${requirements || 'Basic business processes'}
+Complexity: ${complexity || 'medium'}
 
-Template: ${template.name}
-Description: ${template.description}
-Project Name: ${projectName}
-Complexity Level: ${complexity}
-Expected User Load: ${userLoad || "Not specified"}
-Budget Range: ${budget || "Not specified"}
-Timeline: ${timeline || "Not specified"}
-Additional Requirements: ${customRequirements || "None"}
+Return a JSON object with components and connections:
 
-Template Components: ${template.components.join(", ")}
-
-Please provide a detailed JSON response with the following structure:
 {
   "components": [
     {
-      "id": "unique_id",
-      "type": "database|api|microservice|cloud|mobile|web|cache|auth|payment|email|search|cdn|loadbalancer|queue|monitoring",
-      "label": "Component Name",
+      "id": "comp1",
+      "type": "customer_onboarding",
+      "label": "Customer Onboarding",
       "x": 100,
       "y": 100,
-      "width": 120,
-      "height": 80,
-      "description": "Brief description of what this component does",
-      "technologies": ["tech1", "tech2"],
-      "category": "frontend|backend|database|infrastructure|external"
+      "width": 140,
+      "height": 100,
+      "category": "process"
+    },
+    {
+      "id": "comp2", 
+      "type": "order_process",
+      "label": "Order Processing",
+      "x": 300,
+      "y": 200,
+      "width": 140,
+      "height": 100,
+      "category": "process"
     }
   ],
   "connections": [
     {
-      "id": "unique_connection_id",
-      "from": {"x": 180, "y": 140, "componentId": "source_component_id"},
-      "to": {"x": 300, "y": 200, "componentId": "target_component_id"},
-      "type": "data|async|sync|event",
-      "label": "Connection description",
-      "protocol": "HTTP|WebSocket|gRPC|Message Queue"
+      "id": "conn1",
+      "from": {"x": 170, "y": 150, "componentId": "comp1"},
+      "to": {"x": 370, "y": 250, "componentId": "comp2"},
+      "type": "workflow",
+      "label": "Process Flow"
     }
-  ],
-  "technologies": ["React", "Node.js", "PostgreSQL", "Redis", "AWS", "Docker"],
-  "architecture_notes": "Key architectural decisions and rationale",
-  "scalability_considerations": "How this architecture scales with user load",
-  "security_considerations": "Security measures and best practices implemented",
-  "estimated_cost": "Monthly cost estimate based on user load",
-  "deployment_complexity": "simple|medium|complex",
-  "maintenance_requirements": "Ongoing maintenance considerations"
+  ]
 }
-`
+
+Create 4-6 business components with proper positioning and connections.`
     } else {
-      // Requirements-based generation
-      prompt = `
-You are an expert system architect. Based on the following business requirements, generate a comprehensive system architecture.
+      prompt = `Generate a system architecture diagram as JSON.
 
-Project: ${projectName}
-Requirements: ${requirements}
-Complexity Level: ${complexity}
-Expected User Load: ${userLoad || "Not specified"}
-Budget Range: ${budget || "Not specified"}
-Timeline: ${timeline || "Not specified"}
+Project: ${projectName || 'ArchGen System Architecture'}
+Requirements: ${requirements || 'Basic web application'}
+Complexity: ${complexity || 'medium'}
 
-Please provide a detailed JSON response with the following structure:
+Return a JSON object with components and connections:
+
 {
   "components": [
     {
-      "id": "unique_id",
-      "type": "database|api|microservice|cloud|mobile|web|cache|auth|payment|email|search|cdn|loadbalancer|queue|monitoring",
-      "label": "Component Name",
+      "id": "comp1",
+      "type": "api",
+      "label": "API Gateway",
       "x": 100,
       "y": 100,
       "width": 120,
       "height": 80,
-      "description": "Brief description of what this component does",
-      "technologies": ["tech1", "tech2"],
-      "category": "frontend|backend|database|infrastructure|external"
+      "category": "backend"
+    },
+    {
+      "id": "comp2",
+      "type": "database", 
+      "label": "Database",
+      "x": 300,
+      "y": 200,
+      "width": 120,
+      "height": 80,
+      "category": "database"
     }
   ],
   "connections": [
     {
-      "id": "unique_connection_id",
-      "from": {"x": 180, "y": 140, "componentId": "source_component_id"},
-      "to": {"x": 300, "y": 200, "componentId": "target_component_id"},
-      "type": "data|async|sync|event",
-      "label": "Connection description",
-      "protocol": "HTTP|WebSocket|gRPC|Message Queue"
+      "id": "conn1",
+      "from": {"x": 160, "y": 140, "componentId": "comp1"},
+      "to": {"x": 360, "y": 240, "componentId": "comp2"},
+      "type": "data",
+      "label": "API Call"
     }
-  ],
-  "technologies": ["React", "Node.js", "PostgreSQL", "Redis", "AWS", "Docker"],
-  "architecture_notes": "Key architectural decisions and rationale",
-  "scalability_considerations": "How this architecture scales with user load",
-  "security_considerations": "Security measures and best practices implemented",
-  "estimated_cost": "Monthly cost estimate based on user load",
-  "deployment_complexity": "simple|medium|complex",
-  "maintenance_requirements": "Ongoing maintenance considerations"
+  ]
 }
-`
+
+Create 4-6 system components with proper positioning and connections.`
     }
 
-    prompt += `
-
-IMPORTANT GUIDELINES:
-1. Position components logically (frontend at top, databases at bottom, APIs in middle)
-2. Use realistic coordinates that create a clear, readable layout
-3. Include proper component spacing (at least 150px between components)
-4. Select appropriate technologies based on complexity level and requirements
-5. Ensure all connections reference actual component IDs in both from and to objects
-6. Connection coordinates should match component center positions (x + width/2, y + height/2)
-7. Include security, scalability, and cost considerations
-8. Make the architecture production-ready and follow industry best practices
-9. Consider the specified user load for scaling decisions
-10. Include monitoring and logging components for production systems
-11. Add appropriate caching layers for performance
-12. CRITICAL: Always include componentId references in connections to ensure proper linking
-
-Focus on creating a practical, implementable architecture that addresses all requirements.
-`
+    console.log('Sending request to Gemini API, prompt length:', prompt.length)
 
     const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
       method: "POST",
@@ -148,13 +131,20 @@ Focus on creating a practical, implementable architecture that addresses all req
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 4096,
+          maxOutputTokens: 2048,
         },
       }),
     })
 
     if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.statusText}`)
+      const errorText = await response.text()
+      console.error('Gemini API error details:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText,
+        promptLength: prompt.length
+      })
+      throw new Error(`Gemini API error: ${response.statusText} - ${errorText}`)
     }
 
     const data = await response.json()
@@ -164,9 +154,12 @@ Focus on creating a practical, implementable architecture that addresses all req
       throw new Error("No response from Gemini API")
     }
 
+    console.log('Received response from Gemini API:', generatedText.substring(0, 200) + '...')
+
     // Extract JSON from the response
     const jsonMatch = generatedText.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
+      console.error('No valid JSON found in response:', generatedText)
       throw new Error("No valid JSON found in response")
     }
 
@@ -176,6 +169,8 @@ Focus on creating a practical, implementable architecture that addresses all req
     if (!architecture.components) architecture.components = []
     if (!architecture.connections) architecture.connections = []
     if (!architecture.technologies) architecture.technologies = []
+
+    console.log('Successfully generated architecture with', architecture.components.length, 'components')
 
     return NextResponse.json(architecture)
   } catch (error: any) {

@@ -17,9 +17,23 @@ import {
   Mail,
   Search,
   BarChart3,
+  // Business View Icons
+  Users,
+  Briefcase,
+  Activity,
+  FileText,
+  Calendar,
+  ArrowRight,
+  Building2,
+  UserCheck,
+  TrendingUp,
+  Settings2,
+  Workflow,
+  Target,
 } from "lucide-react"
 
-const componentCategories = [
+// System View Components
+const systemComponentCategories = [
   {
     name: "Data Layer",
     components: [
@@ -54,7 +68,51 @@ const componentCategories = [
   },
 ]
 
-export function ComponentLibrary() {
+// Business View Components
+const businessComponentCategories = [
+  {
+    name: "Business Processes",
+    components: [
+      { type: "order_process", label: "Order Processing", icon: Workflow, color: "bg-blue-600" },
+      { type: "customer_onboarding", label: "Customer Onboarding", icon: UserCheck, color: "bg-green-600" },
+      { type: "payment_process", label: "Payment Processing", icon: CreditCard, color: "bg-purple-600" },
+      { type: "inventory_mgmt", label: "Inventory Management", icon: Settings2, color: "bg-orange-600" },
+    ],
+  },
+  {
+    name: "Business Actors",
+    components: [
+      { type: "customer", label: "Customer", icon: Users, color: "bg-indigo-600" },
+      { type: "admin", label: "Administrator", icon: UserCheck, color: "bg-red-600" },
+      { type: "partner", label: "Business Partner", icon: Briefcase, color: "bg-cyan-600" },
+      { type: "supplier", label: "Supplier", icon: Building2, color: "bg-teal-600" },
+    ],
+  },
+  {
+    name: "Business Data",
+    components: [
+      { type: "customer_data", label: "Customer Data", icon: FileText, color: "bg-emerald-600" },
+      { type: "product_catalog", label: "Product Catalog", icon: Database, color: "bg-yellow-600" },
+      { type: "order_data", label: "Order Data", icon: Activity, color: "bg-pink-600" },
+      { type: "analytics_data", label: "Analytics Data", icon: TrendingUp, color: "bg-violet-600" },
+    ],
+  },
+  {
+    name: "Business Events",
+    components: [
+      { type: "order_placed", label: "Order Placed", icon: Calendar, color: "bg-lime-600" },
+      { type: "payment_completed", label: "Payment Completed", icon: Target, color: "bg-rose-600" },
+      { type: "user_registered", label: "User Registered", icon: Users, color: "bg-sky-600" },
+      { type: "inventory_updated", label: "Inventory Updated", icon: ArrowRight, color: "bg-amber-600" },
+    ],
+  },
+]
+
+interface ComponentLibraryProps {
+  viewType?: 'system' | 'business' | 'technical'
+}
+
+export function ComponentLibrary({ viewType = 'system' }: ComponentLibraryProps) {
   const [draggedComponent, setDraggedComponent] = useState<string | null>(null)
 
   const handleDragStart = (e: React.DragEvent, component: any) => {
@@ -95,34 +153,39 @@ export function ComponentLibrary() {
     }
   }
 
-  return (
-    <Card className="p-4 neomorphism h-full flex flex-col overflow-hidden">
-      <h2 className="text-lg font-semibold mb-4">Component Library</h2>
+  // Get the appropriate component categories based on view type
+  const componentCategories = viewType === 'business' ? businessComponentCategories : systemComponentCategories
 
-      <div className="space-y-4 overflow-auto flex-1">
+  return (
+    <Card className="p-3 neomorphism h-full flex flex-col overflow-hidden">
+      <h2 className="text-base font-semibold mb-3">
+        {viewType === 'business' ? 'Business Components' : 'Component Library'}
+      </h2>
+
+      <div className="space-y-3 overflow-auto flex-1">
         {componentCategories.map((category) => (
           <div key={category.name}>
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">{category.name}</h3>
-            <div className="space-y-2">
+            <h3 className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">{category.name}</h3>
+            <div className="space-y-1.5">
               {category.components.map((component) => (
                 <div
                   key={component.type}
                   draggable
                   onDragStart={(e) => handleDragStart(e, component)}
                   onDragEnd={handleDragEnd}
-                  className={`flex items-center gap-3 p-3 bg-card rounded-lg border border-border cursor-grab transition-all duration-200 select-none ${
+                  className={`flex items-center gap-2 p-2 bg-card rounded-md border border-border cursor-grab transition-all duration-200 select-none ${
                     draggedComponent === component.type
                       ? "opacity-40 scale-95 bg-primary/10 border-primary cursor-grabbing"
                       : "hover:bg-accent/50 hover:scale-[1.02] hover:shadow-md neomorphism-hover active:scale-95"
                   }`}
                   title={`Drag ${component.label} to canvas`}
                 >
-                  <div className={`p-2 rounded-md ${component.color}`}>
-                    <component.icon className="h-4 w-4 text-white" />
+                  <div className={`p-1.5 rounded ${component.color}`}>
+                    <component.icon className="h-3 w-3 text-white" />
                   </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium">{component.label}</div>
-                    <div className="text-xs text-muted-foreground">{component.type}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-medium truncate">{component.label}</div>
+                    <div className="text-xs text-muted-foreground truncate">{component.type}</div>
                   </div>
                 </div>
               ))}
@@ -131,9 +194,9 @@ export function ComponentLibrary() {
         ))}
       </div>
 
-      <div className="mt-4 pt-4 border-t border-border">
+      <div className="mt-3 pt-3 border-t border-border">
         <Badge variant="outline" className="text-xs">
-          {draggedComponent ? `Dragging: ${draggedComponent}` : "Drag components to canvas"}
+          {draggedComponent ? `Dragging: ${draggedComponent}` : "Drag to canvas"}
         </Badge>
       </div>
     </Card>
