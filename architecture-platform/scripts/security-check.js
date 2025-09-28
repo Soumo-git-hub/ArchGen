@@ -17,7 +17,7 @@ const SECURITY_PATTERNS = [
 ];
 
 function checkEnvironmentFile() {
-  const envPath = path.join(__dirname, '.env');
+  const envPath = path.join(__dirname, '..', '.env');
   
   if (!fs.existsSync(envPath)) {
     console.error('❌ Missing .env file! Copy .env.example to .env and configure your API keys.');
@@ -28,7 +28,10 @@ function checkEnvironmentFile() {
   const missingVars = [];
 
   for (const varName of REQUIRED_VARS) {
-    if (!envContent.includes(`${varName}=`) || envContent.includes(`${varName}=your_`)) {
+    const varPattern = new RegExp(`${varName}=(.+)`);
+    const match = envContent.match(varPattern);
+    
+    if (!match || !match[1] || match[1].trim() === '' || match[1].startsWith('your_')) {
       missingVars.push(varName);
     }
   }
@@ -44,8 +47,8 @@ function checkEnvironmentFile() {
 
 function checkCodebaseForSecrets() {
   const filesToCheck = [
-    './app/api/generate-architecture/route.ts',
-    './app/api/parse-requirements/route.ts',
+    '../app/api/generate-architecture/route.ts',
+    '../app/api/parse-requirements/route.ts',
   ];
 
   let foundSecrets = false;

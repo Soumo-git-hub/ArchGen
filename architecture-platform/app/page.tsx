@@ -35,7 +35,7 @@ export default function ArchitecturePlatform() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [parsedRequirements, setParsedRequirements] = useState<ParsedRequirements | null>(null)
   const [activeTab, setActiveTab] = useState<"generator" | "parser">("generator")
-  const [currentView, setCurrentView] = useState<"system" | "business" | "technical">("system")
+  const [currentView, setCurrentView] = useState<"system" | "business">("system")
 
   const handleArchitectureGenerated = (architecture: any) => {
     setGeneratedArchitecture(architecture)
@@ -63,12 +63,16 @@ export default function ArchitecturePlatform() {
         <div className="mx-auto w-full px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 neomorphism">
-                <Brain className="h-6 w-6 text-primary" />
+              <div className="p-1 rounded-lg bg-primary/10 neomorphism">
+                <img 
+                  src="/archgen.png" 
+                  alt="ArchGen Logo" 
+                  className="h-10 w-10 object-contain"
+                />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-foreground">ArchGen</h1>
-                <p className="text-sm text-muted-foreground">AI-Powered Architecture Generator</p>
+                <p className="text-sm text-muted-foreground">Architecture Generator</p>
               </div>
             </div>
 
@@ -82,10 +86,10 @@ export default function ArchitecturePlatform() {
         </div>
       </header>
 
-      <div className="mx-auto w-full px-3 lg:px-4 py-4">
-        <div className="grid grid-cols-1 xl:grid-cols-16 gap-4 h-[calc(100vh-100px)] min-h-0">
+      <div className="mx-auto w-full px-2 lg:px-3 py-3">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 h-[calc(100vh-80px)] min-h-0">
           {/* Left Sidebar - AI Tools & Components (More Compact) */}
-          <div className="xl:col-span-4 space-y-4 min-h-0 overflow-auto">
+          <div className="xl:col-span-3 space-y-3 min-h-0 overflow-auto">
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
               <TabsList className="grid w-full grid-cols-2 neomorphism">
                 <TabsTrigger value="generator">Generator</TabsTrigger>
@@ -109,9 +113,9 @@ export default function ArchitecturePlatform() {
           </div>
 
           {/* Main Canvas Area - Expanded */}
-          <div className="xl:col-span-8 min-h-0">
+          <div className="xl:col-span-6 min-h-0">
             <Card className="h-full neomorphism flex flex-col overflow-hidden">
-              <div className="p-3 border-b border-border">
+              <div className="p-1 border-b border-border">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold flex items-center gap-2">
                     <Layers className="h-5 w-5 text-primary" />
@@ -123,14 +127,13 @@ export default function ArchitecturePlatform() {
                       <TabsList className="neomorphism">
                         <TabsTrigger value="system">System</TabsTrigger>
                         <TabsTrigger value="business">Business</TabsTrigger>
-                        <TabsTrigger value="technical">Technical</TabsTrigger>
                       </TabsList>
                     </Tabs>
                   </div>
                 </div>
               </div>
 
-              <div className="flex-1 p-3 min-h-0">
+              <div className="flex-1 p-1 min-h-0">
                 <ArchitectureCanvas 
                   architecture={generatedArchitecture} 
                   isGenerating={isGenerating}
@@ -142,7 +145,7 @@ export default function ArchitecturePlatform() {
           </div>
 
           {/* Right Sidebar - Export & Analysis (More Compact) */}
-          <div className="xl:col-span-4 space-y-4 min-h-0 overflow-auto">
+          <div className="xl:col-span-3 space-y-3 min-h-0 overflow-auto">
             <ExportCollaborationPanel
               architecture={generatedArchitecture}
               onExport={handleExport}

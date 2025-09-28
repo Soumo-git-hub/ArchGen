@@ -165,10 +165,56 @@ Create 4-6 system components with proper positioning and connections.`
 
     const architecture = JSON.parse(jsonMatch[0])
 
-    // Validate and enhance the architecture
+    // Validate and enhance the architecture with better positioning
     if (!architecture.components) architecture.components = []
     if (!architecture.connections) architecture.connections = []
     if (!architecture.technologies) architecture.technologies = []
+
+    // Enhanced component positioning for better layout
+    if (architecture.components.length > 0) {
+      // Apply smart grid layout to prevent overlapping
+      const gridCols = Math.ceil(Math.sqrt(architecture.components.length))
+      const baseWidth = 140
+      const baseHeight = 100
+      const spacing = 80
+      
+      architecture.components.forEach((comp: any, index: number) => {
+        const row = Math.floor(index / gridCols)
+        const col = index % gridCols
+        
+        // Enhanced positioning with better spacing
+        comp.x = col * (baseWidth + spacing) + 100
+        comp.y = row * (baseHeight + spacing) + 100
+        comp.width = comp.width || baseWidth
+        comp.height = comp.height || baseHeight
+        
+        // Ensure component has proper ID
+        if (!comp.id) {
+          comp.id = `comp-${index}`
+        }
+      })
+      
+      // Update connection positions to match component centers
+      architecture.connections.forEach((conn: any, index: number) => {
+        if (!conn.id) {
+          conn.id = `conn-${index}`
+        }
+        
+        // Find source and target components
+        const fromComp = architecture.components.find((c: any) => c.id === conn.from?.componentId)
+        const toComp = architecture.components.find((c: any) => c.id === conn.to?.componentId)
+        
+        if (fromComp) {
+          conn.from.x = fromComp.x + fromComp.width / 2
+          conn.from.y = fromComp.y + fromComp.height / 2
+        }
+        
+        if (toComp) {
+          conn.to.x = toComp.x + toComp.width / 2
+          conn.to.y = toComp.y + toComp.height / 2
+        }
+      })
+    }
 
     console.log('Successfully generated architecture with', architecture.components.length, 'components')
 

@@ -116,6 +116,208 @@
 - Industry standard architecture patterns
 - Real cloud pricing data (AWS, GCP, Azure)
 
+## 🚀 Quick Start
+
+### Prerequisites
+- **Node.js 18+** (LTS recommended)
+- **Google Gemini API key** ([Get yours here](https://makersuite.google.com/app/apikey))
+- **npm** or **yarn**
+
+### Installation
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/yourusername/archgen.git
+cd archgen/architecture-platform
+```
+
+2. **Install dependencies**
+```bash
+npm install
+```
+
+3. **Configure environment**
+```bash
+cp .env.example .env
+# Edit .env and add your API key:
+# API_KEY=your_gemini_api_key_here
+```
+
+4. **Run security check** (optional)
+```bash
+npm run security-check
+```
+
+5. **Start development server**
+```bash
+npm run dev
+```
+
+6. **Open in browser**
+```
+http://localhost:3000
+```
+
+### ⚠️ Security Note
+Never commit your `.env` file! The API key should remain secret and is automatically excluded by `.gitignore`.
+
+## 💻 API Reference
+
+### Architecture Generation
+```typescript
+POST /api/generate-architecture
+{
+  "requirements": "E-commerce platform with user auth",
+  "projectName": "My Startup",
+  "complexity": "medium",
+  "budget": "$500/month",
+  "viewType": "system" // or "business", "technical"
+}
+```
+
+### Requirements Parsing
+```typescript
+POST /api/parse-requirements
+{
+  "text": "We need a platform for online shopping..."
+}
+```
+
+### Export Architecture
+```typescript
+POST /api/export-architecture
+{
+  "architecture": {...},
+  "format": "svg" // or "png", "pdf", "docker", "json"
+}
+```
+
+## 📁 Project Structure
+
+```
+archgen/
+├── architecture-platform/          # Main Next.js application
+│   ├── app/                        # App router (Next.js 14)
+│   │   ├── api/                    # API routes
+│   │   │   ├── generate-architecture/  # AI architecture generation
+│   │   │   ├── parse-requirements/     # Requirements analysis
+│   │   │   └── export-architecture/    # Export functionality
+│   │   ├── layout.tsx              # Root layout
+│   │   └── page.tsx                # Home page
+│   ├── components/                 # React components
+│   │   ├── ui/                     # Base UI components
+│   │   ├── ai-diagram-generator.tsx
+│   │   ├── architecture-canvas.tsx
+│   │   └── smart-requirements-parser.tsx
+│   ├── hooks/                      # Custom React hooks
+│   ├── lib/                        # Utility functions
+│   ├── scripts/                    # Build and security scripts
+│   └── styles/                     # CSS and styling
+└── README.md                       # This file
+```
+
+## 🔍 Development
+
+### Available Scripts
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint
+npm run security-check # Validate environment setup
+```
+
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `API_KEY` | ✓ | Google Gemini API key for AI generation |
+| `NODE_ENV` | ✘ | Environment (development/production) |
+
+### Contributing
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Run security checks (`npm run security-check`)
+4. Commit your changes (`git commit -m 'Add amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
+
+## 📊 Performance & Limitations
+
+### Current Capabilities
+- ✅ Handles projects up to enterprise scale
+- ✅ Supports 15+ cloud platforms and services
+- ✅ Real-time generation (< 30 seconds)
+- ✅ Concurrent user support
+
+### Known Limitations
+- 🔸 Best suited for greenfield projects
+- 🔸 Complex enterprise integrations may need manual refinement
+- 🔸 Cost estimates based on standard pricing (no discounts)
+- 🔸 Generated architectures require technical validation
+
+### Roadmap
+- [ ] Integration with Terraform/CloudFormation
+- [ ] Real-time cost monitoring
+- [ ] Architecture diff and versioning
+- [ ] Plugin ecosystem for custom components
+- [ ] Multi-language requirement parsing
+
+## 📜 Research & Academic Use
+
+**Research Contributions:**
+- Novel hybrid approach combining rule-based and AI-driven architecture generation
+- Business constraint integration in automated system design
+- Validation methodology for AI-generated architectures
+
+**Citations:**
+If you use ArchGen in academic research, please cite:
+```
+@software{archgen2024,
+  title={ArchGen: AI-Powered Architecture Generation Platform},
+  author={Your Name},
+  year={2024},
+  url={https://github.com/yourusername/archgen}
+}
+```
+
+**Related Work:**
+- AI-assisted software architecture design
+- Automated cloud resource optimization
+- Requirements engineering and NLP
+
+## 🛡️ Security
+
+- ✅ **Environment-based configuration** - No hardcoded secrets
+- ✅ **Input validation** - All user inputs sanitized
+- ✅ **API rate limiting** - Prevents abuse
+- ✅ **Security scanning** - Automated checks in CI/CD
+- ✅ **HTTPS only** - Secure data transmission
+
+## 📞 Support
+
+- **Documentation:** [Wiki](https://github.com/yourusername/archgen/wiki)
+- **Issues:** [GitHub Issues](https://github.com/yourusername/archgen/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/yourusername/archgen/discussions)
+- **Email:** your.email@domain.com
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Google Gemini AI for powering the architecture generation
+- Next.js team for the amazing framework
+- shadcn/ui for the beautiful component library
+- The open-source community for inspiration and feedback
+
+---
+
+**🌟 Star this repo if ArchGen helped you build better architectures!**
+
+**🔗 Connect with the creator:** [LinkedIn](https://linkedin.com/in/yourprofile) | [Twitter](https://twitter.com/yourhandle) | [Portfolio](https://yourportfolio.com)
+
 ## Prerequisites
 - Node.js 18+ (LTS recommended)
 - npm (using npm for this repo)

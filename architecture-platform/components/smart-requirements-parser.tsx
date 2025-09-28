@@ -401,13 +401,9 @@ export function SmartRequirementsParser({ onRequirementsParsed }: { onRequiremen
             Smart Requirements Parser
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            AI-powered analysis of business requirements with insights and recommendations
+            Analysis of business requirements with insights and recommendations
           </p>
         </div>
-        <Badge variant="secondary" className="neomorphism">
-          <Zap className="h-3 w-3 mr-1" />
-          Gemini Flash 2.5
-        </Badge>
       </div>
 
       <Tabs value={inputMethod} onValueChange={(value) => setInputMethod(value as any)} className="space-y-4">

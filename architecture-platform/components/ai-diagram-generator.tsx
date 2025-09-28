@@ -24,7 +24,6 @@ interface ArchitectureTemplate {
   name: string
   description: string
   icon: any
-  complexity: "simple" | "medium" | "complex"
   estimatedTime: string
   components: string[]
 }
@@ -35,7 +34,6 @@ const systemArchitectureTemplates: ArchitectureTemplate[] = [
     name: "E-commerce Platform",
     description: "Full-featured online store with payments, inventory, and user management",
     icon: Globe,
-    complexity: "complex",
     estimatedTime: "3-5 minutes",
     components: [
       "Web Frontend",
@@ -53,7 +51,6 @@ const systemArchitectureTemplates: ArchitectureTemplate[] = [
     name: "Mobile App Backend",
     description: "Scalable backend for mobile applications with real-time features",
     icon: Smartphone,
-    complexity: "medium",
     estimatedTime: "2-3 minutes",
     components: ["API Gateway", "Authentication", "Push Notifications", "Database", "File Storage", "Analytics"],
   },
@@ -62,7 +59,6 @@ const systemArchitectureTemplates: ArchitectureTemplate[] = [
     name: "Microservices Architecture",
     description: "Distributed system with independent services and event-driven communication",
     icon: Database,
-    complexity: "complex",
     estimatedTime: "4-6 minutes",
     components: [
       "Service Mesh",
@@ -78,7 +74,6 @@ const systemArchitectureTemplates: ArchitectureTemplate[] = [
     name: "Data Analytics Platform",
     description: "Big data processing and analytics with real-time dashboards",
     icon: TrendingUp,
-    complexity: "complex",
     estimatedTime: "3-4 minutes",
     components: ["Data Ingestion", "Data Lake", "Processing Engine", "Analytics DB", "Dashboard", "ML Pipeline"],
   },
@@ -87,7 +82,6 @@ const systemArchitectureTemplates: ArchitectureTemplate[] = [
     name: "SaaS Application",
     description: "Multi-tenant SaaS platform with subscription management",
     icon: Cloud,
-    complexity: "medium",
     estimatedTime: "2-4 minutes",
     components: ["Frontend", "API", "Multi-tenant DB", "Billing Service", "Authentication", "Monitoring"],
   },
@@ -96,7 +90,6 @@ const systemArchitectureTemplates: ArchitectureTemplate[] = [
     name: "Enterprise System",
     description: "Secure enterprise application with compliance and audit features",
     icon: Shield,
-    complexity: "complex",
     estimatedTime: "4-5 minutes",
     components: ["Web Portal", "API Gateway", "Identity Provider", "Audit Service", "Database", "Security Layer"],
   },
@@ -108,7 +101,6 @@ const businessArchitectureTemplates: ArchitectureTemplate[] = [
     name: "Customer Journey",
     description: "End-to-end customer experience from awareness to retention",
     icon: Globe,
-    complexity: "medium",
     estimatedTime: "2-3 minutes",
     components: [
       "Customer Acquisition",
@@ -123,7 +115,6 @@ const businessArchitectureTemplates: ArchitectureTemplate[] = [
     name: "Order Fulfillment Process",
     description: "Complete order processing from placement to delivery",
     icon: TrendingUp,
-    complexity: "medium",
     estimatedTime: "2-4 minutes",
     components: [
       "Order Placement",
@@ -139,7 +130,6 @@ const businessArchitectureTemplates: ArchitectureTemplate[] = [
     name: "Supply Chain Management",
     description: "End-to-end supply chain from suppliers to customers",
     icon: Database,
-    complexity: "complex",
     estimatedTime: "3-5 minutes",
     components: [
       "Supplier Management",
@@ -155,7 +145,6 @@ const businessArchitectureTemplates: ArchitectureTemplate[] = [
     name: "Product Development Lifecycle",
     description: "Product ideation, development, and market launch process",
     icon: Lightbulb,
-    complexity: "complex",
     estimatedTime: "3-4 minutes",
     components: [
       "Market Research",
@@ -171,7 +160,6 @@ const businessArchitectureTemplates: ArchitectureTemplate[] = [
     name: "Financial Operations",
     description: "Financial planning, budgeting, and reporting processes",
     icon: TrendingUp,
-    complexity: "medium",
     estimatedTime: "2-3 minutes",
     components: [
       "Budget Planning",
@@ -187,7 +175,6 @@ const businessArchitectureTemplates: ArchitectureTemplate[] = [
     name: "Human Resources",
     description: "Employee lifecycle from recruitment to offboarding",
     icon: Shield,
-    complexity: "medium",
     estimatedTime: "2-4 minutes",
     components: [
       "Recruitment",
@@ -367,23 +354,9 @@ export function AIDiagramGenerator({
     if (template) {
       setSelectedTemplate(templateId)
       setProjectName(template.name)
-      setComplexity(template.complexity)
       setRequirements(
         `Generate a ${template.name.toLowerCase()} with the following components: ${template.components.join(", ")}`,
       )
-    }
-  }
-
-  const getComplexityColor = (level: string) => {
-    switch (level) {
-      case "simple":
-        return "text-green-500"
-      case "medium":
-        return "text-yellow-500"
-      case "complex":
-        return "text-red-500"
-      default:
-        return "text-gray-500"
     }
   }
 
@@ -393,16 +366,12 @@ export function AIDiagramGenerator({
         <div>
           <h2 className="text-xl font-bold flex items-center gap-2">
             <Brain className="h-6 w-6 text-primary" />
-            AI Architecture Generator
+            Architecture Generator
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
             Generate production-ready system architectures
           </p>
         </div>
-        <Badge variant="secondary" className="neomorphism">
-          <Zap className="h-3 w-3 mr-1" />
-          AI-Powered
-        </Badge>
       </div>
 
       <Tabs value={generationMode} onValueChange={(value) => setGenerationMode(value as any)} className="space-y-4">
@@ -412,23 +381,13 @@ export function AIDiagramGenerator({
         </TabsList>
 
         <TabsContent value="requirements" className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <Input
               placeholder="Project Name"
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
               className="neomorphism-inset"
             />
-            <Select value={complexity} onValueChange={(value) => setComplexity(value as any)}>
-              <SelectTrigger className="neomorphism-inset">
-                <SelectValue placeholder="Complexity Level" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="simple">Simple - Basic features</SelectItem>
-                <SelectItem value="medium">Medium - Standard features</SelectItem>
-                <SelectItem value="complex">Complex - Enterprise features</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
@@ -486,9 +445,6 @@ Example: 'Build an e-commerce platform with user authentication, product catalog
                     <div className="flex items-center justify-between">
                       <h3 className="font-medium">{template.name}</h3>
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className={getComplexityColor(template.complexity)}>
-                          {template.complexity}
-                        </Badge>
                         <Badge variant="secondary" className="text-xs">
                           {template.estimatedTime}
                         </Badge>
@@ -580,7 +536,7 @@ Example: 'Build an e-commerce platform with user authentication, product catalog
         ) : (
           <>
             <Wand2 className="h-4 w-4 mr-2" />
-            Generate Architecture with AI
+            Generate Architecture
           </>
         )}
       </Button>

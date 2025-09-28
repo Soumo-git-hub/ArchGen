@@ -30,6 +30,19 @@ import {
   Settings2,
   Workflow,
   Target,
+  // AWS Service Icons
+  HardDrive,
+  Cpu,
+  Network,
+  MonitorSpeaker,
+  Container,
+  Code,
+  Brain,
+  MessageSquare,
+  Bell,
+  Key,
+  Layers,
+  GitBranch,
 } from "lucide-react"
 
 // System View Components
@@ -64,6 +77,23 @@ const systemComponentCategories = [
       { type: "payment", label: "Payment Gateway", icon: CreditCard, color: "bg-emerald-500" },
       { type: "email", label: "Email Service", icon: Mail, color: "bg-pink-500" },
       { type: "mobile", label: "Mobile App", icon: Smartphone, color: "bg-violet-500" },
+    ],
+  },
+  {
+    name: "AWS Services",
+    components: [
+      { type: "aws_ec2", label: "AWS EC2", icon: Server, color: "bg-orange-600" },
+      { type: "aws_rds", label: "AWS RDS", icon: Database, color: "bg-blue-600" },
+      { type: "aws_s3", label: "AWS S3", icon: HardDrive, color: "bg-green-600" },
+      { type: "aws_lambda", label: "AWS Lambda", icon: Code, color: "bg-yellow-600" },
+      { type: "aws_api_gateway", label: "API Gateway", icon: Network, color: "bg-purple-600" },
+      { type: "aws_cloudfront", label: "CloudFront CDN", icon: Globe, color: "bg-cyan-600" },
+      { type: "aws_elb", label: "Load Balancer", icon: BarChart3, color: "bg-indigo-600" },
+      { type: "aws_elasticache", label: "ElastiCache", icon: Zap, color: "bg-red-600" },
+      { type: "aws_sns", label: "AWS SNS", icon: Bell, color: "bg-teal-600" },
+      { type: "aws_sqs", label: "AWS SQS", icon: MessageSquare, color: "bg-rose-600" },
+      { type: "aws_cognito", label: "AWS Cognito", icon: Shield, color: "bg-amber-600" },
+      { type: "aws_ecs", label: "AWS ECS", icon: Container, color: "bg-lime-600" },
     ],
   },
 ]
@@ -109,7 +139,7 @@ const businessComponentCategories = [
 ]
 
 interface ComponentLibraryProps {
-  viewType?: 'system' | 'business' | 'technical'
+  viewType?: 'system' | 'business'
 }
 
 export function ComponentLibrary({ viewType = 'system' }: ComponentLibraryProps) {

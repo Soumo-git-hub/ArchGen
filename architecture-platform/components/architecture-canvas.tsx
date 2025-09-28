@@ -57,7 +57,7 @@ interface ArchitectureCanvasProps {
   architecture: any
   isGenerating: boolean
   onArchitectureChange?: (architecture: any) => void
-  viewType?: 'system' | 'business' | 'technical'
+  viewType?: 'system' | 'business'
 }
 
 export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureChange, viewType = 'system' }: ArchitectureCanvasProps) {
@@ -87,6 +87,7 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
   const [lastClickedConnection, setLastClickedConnection] = useState<string | null>(null)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; type: 'connection' | 'component' | null; target: any }>({ x: 0, y: 0, type: null, target: null })
   const [isInputFocused, setIsInputFocused] = useState(false)
+  const [isEditingComponent, setIsEditingComponent] = useState(false)
   
   // Undo/Redo state management
   const [history, setHistory] = useState<Array<{ components: Component[], connections: Connection[] }>>([])
@@ -999,37 +1000,57 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
       ctx.strokeRect(x + offsetX, y + offsetY, width, height)
     }
 
-    // Component icon area with elevation
-    const iconSize = 24
-    const iconX = x + 8 + offsetX
-    const iconY = y + 8 + offsetY
+    // Component icon area with enhanced visibility and proper rendering
+    const iconSize = 28
+    const iconX = x + 10 + offsetX
+    const iconY = y + 10 + offsetY
     
-    // Use component's color if available, otherwise use category color
-    const iconBgColor = color ? getColorFromTailwind(color) : iconColor
-    ctx.fillStyle = iconBgColor
-    ctx.fillRect(iconX, iconY, iconSize, iconSize)
+    // Create a highly contrasting background for better icon visibility
+    const componentColor = color ? getColorFromTailwind(color) : getCategoryColor(component, 'base')
+    
+    // Icon background with strong contrast and border
+    ctx.fillStyle = "rgba(255, 255, 255, 0.95)"
+    ctx.fillRect(iconX - 3, iconY - 3, iconSize + 6, iconSize + 6)
+    
+    // Icon background border for definition
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.1)"
+    ctx.lineWidth = 1
+    ctx.strokeRect(iconX - 3, iconY - 3, iconSize + 6, iconSize + 6)
 
-    // Always try to draw SVG-like icon first, then fallback to emoji/text
+    // Draw icon with enhanced rendering
+    let iconRendered = false
     try {
-      // Draw SVG-like icon on canvas
+      // Try to draw SVG-like icon first with better visibility
       drawIconOnCanvas(ctx, type, iconX, iconY, iconSize)
+      iconRendered = true
     } catch (error) {
-      // Fallback to emoji symbol or first letter if SVG drawing fails
-      ctx.fillStyle = "#ffffff"
-      ctx.font = "12px sans-serif"
+      console.log(`SVG icon failed for ${type}, using fallback`)
+      iconRendered = false
+    }
+    
+    // Enhanced fallback rendering for better visibility
+    if (!iconRendered) {
+      ctx.fillStyle = "#1f2937" // Dark color for better contrast
+      ctx.font = "16px sans-serif"
       ctx.textAlign = "center"
       ctx.textBaseline = "middle"
       
-      // Try emoji first, then fallback to first letter
+      // Get emoji or text symbol
       const iconSymbol = getIconSymbol(type)
-      if (iconSymbol.length === 1) {
-        // Single character, use larger font
-        ctx.font = "16px sans-serif"
-        ctx.fillText(iconSymbol, iconX + iconSize / 2, iconY + iconSize / 2)
+      if (iconSymbol && iconSymbol.length > 0) {
+        if (iconSymbol.length === 1 && /^[A-Za-z]$/.test(iconSymbol)) {
+          // Single letter, use larger bold font
+          ctx.font = "bold 18px sans-serif"
+          ctx.fillText(iconSymbol.toUpperCase(), iconX + iconSize / 2, iconY + iconSize / 2)
+        } else {
+          // Emoji or symbol, use appropriate size
+          ctx.font = "16px sans-serif"
+          ctx.fillText(iconSymbol, iconX + iconSize / 2, iconY + iconSize / 2)
+        }
       } else {
-        // Emoji, use smaller font
-        ctx.font = "12px sans-serif"
-        ctx.fillText(iconSymbol, iconX + iconSize / 2, iconY + iconSize / 2)
+        // Final fallback - use first letter of type
+        ctx.font = "bold 18px sans-serif"
+        ctx.fillText(type.charAt(0).toUpperCase(), iconX + iconSize / 2, iconY + iconSize / 2)
       }
     }
 
@@ -1063,6 +1084,51 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
       ctx.font = "10px sans-serif"
       ctx.textAlign = "center"
       ctx.fillText("●", x + width - 12 + offsetX, y + 16 + offsetY)
+    }
+    
+    // Edit icon in top-right corner (always visible when component is hovered or selected)
+    if (isHovered || selected) {
+      const editIconSize = 16
+      const editIconX = x + width - editIconSize - 4 + offsetX
+      const editIconY = y + 4 + offsetY
+      
+      // Edit icon background
+      ctx.fillStyle = selected ? "rgba(139, 92, 246, 0.9)" : "rgba(75, 85, 99, 0.8)"
+      ctx.beginPath()
+      ctx.roundRect(editIconX, editIconY, editIconSize, editIconSize, 4)
+      ctx.fill()
+      
+      // Edit icon border
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.8)"
+      ctx.lineWidth = 1
+      ctx.stroke()
+      
+      // Edit icon (pencil)
+      ctx.strokeStyle = "#ffffff"
+      ctx.lineWidth = 1.5
+      ctx.lineCap = "round"
+      
+      // Draw pencil icon
+      const iconCenterX = editIconX + editIconSize / 2
+      const iconCenterY = editIconY + editIconSize / 2
+      
+      // Pencil body
+      ctx.beginPath()
+      ctx.moveTo(iconCenterX - 3, iconCenterY + 3)
+      ctx.lineTo(iconCenterX + 3, iconCenterY - 3)
+      ctx.stroke()
+      
+      // Pencil tip
+      ctx.beginPath()
+      ctx.moveTo(iconCenterX + 2, iconCenterY - 4)
+      ctx.lineTo(iconCenterX + 4, iconCenterY - 2)
+      ctx.stroke()
+      
+      // Pencil eraser
+      ctx.fillStyle = "#ff6b6b"
+      ctx.beginPath()
+      ctx.arc(iconCenterX - 3, iconCenterY + 3, 1.5, 0, Math.PI * 2)
+      ctx.fill()
     }
   }
 
@@ -1356,6 +1422,25 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
       ) || null
     )
   }
+  
+  // Function to check if edit icon is clicked
+  const getEditIconClickAt = (x: number, y: number): Component | null => {
+    const canvasX = (x - pan.x) / zoom
+    const canvasY = (y - pan.y) / zoom
+
+    return (
+      components.find((comp) => {
+        const editIconSize = 16
+        const editIconX = comp.x + comp.width - editIconSize - 4
+        const editIconY = comp.y + 4
+        
+        return canvasX >= editIconX && 
+               canvasX <= editIconX + editIconSize && 
+               canvasY >= editIconY && 
+               canvasY <= editIconY + editIconSize
+      }) || null
+    )
+  }
 
   const getConnectionAt = (x: number, y: number): Connection | null => {
     const canvasX = (x - pan.x) / zoom
@@ -1498,6 +1583,19 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
     const y = e.clientY - rect.top
     setDragStart({ x: e.clientX, y: e.clientY })
 
+    // Check for edit icon click first (highest priority) - restore edit panel functionality
+    const editIconComponent = getEditIconClickAt(x, y)
+    if (editIconComponent) {
+      console.log("Edit icon clicked for component:", editIconComponent.label, "- Opening edit panel")
+      setSelectedComponent(editIconComponent)
+      setComponents((prev) => prev.map((c) => ({ ...c, selected: c.id === editIconComponent.id })))
+      setSelectedConnection(null)
+      setConnections((prev) => prev.map((c) => ({ ...c, selected: false })))
+      setIsEditingComponent(true)
+      // Don't start dragging when clicking edit icon
+      return
+    }
+
     const component = getComponentAt(x, y)
     const connection = getConnectionAt(x, y)
 
@@ -1555,13 +1653,15 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
           y: canvasY - component.y
         })
         
-        // Select component and prepare for dragging
+        // Select component and prepare for dragging (NEVER open edit mode on regular click)
         setSelectedComponent(component)
         setComponents((prev) => prev.map((c) => ({ ...c, selected: c.id === component.id })))
         setSelectedConnection(null)
         setConnections((prev) => prev.map((c) => ({ ...c, selected: false })))
         setEditingConnectionLabel(null)
         setIsDraggingComponent(true)
+        // IMPORTANT: Never set isEditingComponent to true here - only edit icon clicks should do that
+        console.log("Component selected for dragging:", component.label, "Edit mode will NOT open")
       } else {
         // Deselect all and prepare for canvas panning
         setSelectedComponent(null)
@@ -1571,6 +1671,7 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
         setEditingConnectionLabel(null)
         setIsDraggingComponent(false)
         setContextMenu({ x: 0, y: 0, type: null, target: null })
+        setIsEditingComponent(false) // Close edit mode when clicking empty area
       }
       setIsDragging(true)
     } else if (tool === "pan") {
@@ -2064,6 +2165,36 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
       payment: "💳",
       email: "📧",
       mobile: "📱",
+      // AWS Services
+      aws_ec2: "🖥️",
+      aws_rds: "🗄️",
+      aws_s3: "🗋",
+      aws_lambda: "λ",
+      aws_api_gateway: "🌐",
+      aws_cloudfront: "🌍",
+      aws_elb: "⚖️",
+      aws_elasticache: "⚡",
+      aws_sns: "🔔",
+      aws_sqs: "📬",
+      aws_cognito: "🔐",
+      aws_ecs: "📦",
+      // Business components
+      order_process: "📋",
+      customer_onboarding: "👤",
+      payment_process: "💳",
+      inventory_mgmt: "📦",
+      customer: "👤",
+      admin: "👨‍💼",
+      partner: "🤝",
+      supplier: "🏢",
+      customer_data: "📁",
+      product_catalog: "📈",
+      order_data: "📊",
+      analytics_data: "📉",
+      order_placed: "✓",
+      payment_completed: "💰",
+      user_registered: "🎉",
+      inventory_updated: "⬆️",
     }
     return iconMap[type] || "📦"
   }
@@ -2087,20 +2218,23 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
     return colorMap[tailwindColor] || "#6b7280"
   }
 
-  // Helper function to draw SVG-like icons on canvas
+  // Helper function to draw SVG-like icons on canvas with enhanced rendering
   const drawIconOnCanvas = (ctx: CanvasRenderingContext2D, type: string, x: number, y: number, size: number) => {
     ctx.save()
     ctx.translate(x + size / 2, y + size / 2)
     ctx.scale(size / 24, size / 24) // Scale to fit the icon size
     
-    ctx.strokeStyle = "#ffffff"
-    ctx.fillStyle = "#ffffff"
-    ctx.lineWidth = 1.5
+    // Use dark colors for better contrast on white background
+    ctx.strokeStyle = "#1f2937"
+    ctx.fillStyle = "#1f2937"
+    ctx.lineWidth = 2 // Increased line width for better visibility
     ctx.lineCap = "round"
     ctx.lineJoin = "round"
     
-    switch (type) {
+    switch (type.toLowerCase()) {
       case 'database':
+      case 'aws_rds':
+      case 'aws_s3':
         // Draw database cylinder
         ctx.beginPath()
         ctx.ellipse(0, -6, 8, 3, 0, 0, Math.PI * 2)
@@ -2117,6 +2251,7 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
         break
         
       case 'cache':
+      case 'aws_elasticache':
         // Draw lightning bolt for cache
         ctx.beginPath()
         ctx.moveTo(-2, -8)
@@ -2141,31 +2276,37 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
         break
         
       case 'api':
+      case 'aws_api_gateway':
         // Draw API connector
         ctx.beginPath()
         ctx.moveTo(-8, 0)
         ctx.lineTo(8, 0)
-        ctx.moveTo(-6, -2)
-        ctx.lineTo(-6, 2)
-        ctx.moveTo(6, -2)
-        ctx.lineTo(6, 2)
+        ctx.moveTo(-6, -3)
+        ctx.lineTo(-6, 3)
+        ctx.moveTo(6, -3)
+        ctx.lineTo(6, 3)
+        ctx.moveTo(0, -6)
+        ctx.lineTo(0, 6)
         ctx.stroke()
         break
         
       case 'microservice':
-        // Draw globe for microservice
+      case 'service':
+      case 'aws_ecs':
+        // Draw microservice container
+        ctx.strokeRect(-8, -6, 16, 12)
         ctx.beginPath()
-        ctx.arc(0, 0, 8, 0, Math.PI * 2)
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.moveTo(-8, 0)
-        ctx.lineTo(8, 0)
-        ctx.moveTo(0, -8)
-        ctx.lineTo(0, 8)
+        ctx.moveTo(-6, -4)
+        ctx.lineTo(6, -4)
+        ctx.moveTo(-6, 0)
+        ctx.lineTo(6, 0)
+        ctx.moveTo(-6, 4)
+        ctx.lineTo(6, 4)
         ctx.stroke()
         break
         
       case 'auth':
+      case 'aws_cognito':
         // Draw shield
         ctx.beginPath()
         ctx.moveTo(0, -8)
@@ -2176,35 +2317,39 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
         ctx.lineTo(6, -4)
         ctx.closePath()
         ctx.stroke()
+        // Add checkmark
+        ctx.beginPath()
+        ctx.moveTo(-3, 0)
+        ctx.lineTo(-1, 2)
+        ctx.lineTo(3, -2)
+        ctx.stroke()
         break
         
       case 'cloud':
+      case 'aws_cloudfront':
         // Draw cloud
         ctx.beginPath()
-        ctx.arc(-4, 0, 4, 0, Math.PI * 2)
-        ctx.arc(4, 0, 4, 0, Math.PI * 2)
-        ctx.arc(0, -2, 6, 0, Math.PI * 2)
+        ctx.arc(-4, 0, 3, Math.PI * 0.5, Math.PI * 1.5)
+        ctx.arc(0, -3, 4, Math.PI, 2 * Math.PI)
+        ctx.arc(4, 0, 3, Math.PI * 1.5, Math.PI * 0.5)
+        ctx.arc(0, 3, 6, 0, Math.PI)
         ctx.fill()
         break
         
-      case 'cdn':
-        // Draw globe for CDN
-        ctx.beginPath()
-        ctx.arc(0, 0, 8, 0, Math.PI * 2)
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.moveTo(-8, 0)
-        ctx.lineTo(8, 0)
-        ctx.moveTo(0, -8)
-        ctx.lineTo(0, 8)
-        ctx.stroke()
-        break
-        
       case 'loadbalancer':
-        // Draw bar chart for load balancer
-        ctx.fillRect(-6, 4, 3, 4)
-        ctx.fillRect(-1, 2, 3, 6)
-        ctx.fillRect(4, 0, 3, 8)
+      case 'aws_elb':
+        // Draw load balancer with multiple servers
+        ctx.fillRect(-8, -6, 4, 8)
+        ctx.fillRect(-2, -6, 4, 8)
+        ctx.fillRect(4, -6, 4, 8)
+        // Add arrows
+        ctx.beginPath()
+        ctx.moveTo(-10, 6)
+        ctx.lineTo(0, 6)
+        ctx.lineTo(-2, 4)
+        ctx.moveTo(0, 6)
+        ctx.lineTo(-2, 8)
+        ctx.stroke()
         break
         
       case 'payment':
@@ -2213,11 +2358,12 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
         ctx.strokeRect(-8, -5, 16, 10)
         ctx.fillStyle = "#ffffff"
         ctx.fillRect(-6, -3, 12, 2)
-        ctx.fillStyle = "#ffffff"
+        ctx.fillStyle = "#1f2937"
         ctx.fillRect(-6, 1, 8, 1)
         break
         
       case 'email':
+      case 'aws_sns':
         // Draw mail icon
         ctx.beginPath()
         ctx.moveTo(-8, -4)
@@ -2234,16 +2380,102 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
         ctx.fillRect(-4, -8, 8, 16)
         ctx.strokeRect(-4, -8, 8, 16)
         ctx.fillStyle = "#ffffff"
-        ctx.fillRect(-3, -6, 6, 4)
-        ctx.fillStyle = "#ffffff"
+        ctx.fillRect(-3, -6, 6, 10)
+        ctx.fillStyle = "#1f2937"
         ctx.beginPath()
         ctx.arc(0, 6, 1, 0, Math.PI * 2)
         ctx.fill()
         break
         
+      case 'aws_ec2':
+      case 'server':
+        // Draw server icon
+        ctx.strokeRect(-8, -6, 16, 12)
+        ctx.beginPath()
+        ctx.moveTo(-6, -4)
+        ctx.lineTo(6, -4)
+        ctx.moveTo(-6, -1)
+        ctx.lineTo(6, -1)
+        ctx.moveTo(-6, 2)
+        ctx.lineTo(6, 2)
+        ctx.stroke()
+        // Add server lights
+        ctx.fillStyle = "#22c55e"
+        ctx.beginPath()
+        ctx.arc(5, -2.5, 0.5, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(5, 0.5, 0.5, 0, Math.PI * 2)
+        ctx.fill()
+        break
+        
+      case 'aws_lambda':
+      case 'function':
+        // Draw lambda symbol
+        ctx.beginPath()
+        ctx.moveTo(-6, -8)
+        ctx.lineTo(-2, 8)
+        ctx.moveTo(-2, 0)
+        ctx.lineTo(6, -8)
+        ctx.stroke()
+        break
+        
+      case 'aws_sqs':
+      case 'queue':
+        // Draw message queue
+        ctx.strokeRect(-8, -4, 16, 8)
+        ctx.beginPath()
+        ctx.moveTo(-6, -2)
+        ctx.lineTo(6, -2)
+        ctx.moveTo(-6, 0)
+        ctx.lineTo(6, 0)
+        ctx.moveTo(-6, 2)
+        ctx.lineTo(6, 2)
+        ctx.stroke()
+        break
+        
+      // Business process types
+      case 'customer_onboarding':
+      case 'order_process':
+      case 'process':
+        // Draw process box
+        ctx.strokeRect(-8, -4, 16, 8)
+        ctx.beginPath()
+        ctx.moveTo(-6, -2)
+        ctx.lineTo(6, -2)
+        ctx.moveTo(-6, 2)
+        ctx.lineTo(6, 2)
+        ctx.stroke()
+        break
+        
+      case 'customer':
+      case 'user':
+      case 'actor':
+        // Draw person icon
+        ctx.beginPath()
+        ctx.arc(0, -4, 3, 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(-4, 8)
+        ctx.lineTo(-2, 2)
+        ctx.lineTo(2, 2)
+        ctx.lineTo(4, 8)
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(0, 2)
+        ctx.lineTo(0, 6)
+        ctx.stroke()
+        break
+        
       default:
-        // Draw a simple box for unknown types
+        // Default fallback - draw a simple box
         ctx.strokeRect(-6, -6, 12, 12)
+        ctx.beginPath()
+        ctx.moveTo(-4, -4)
+        ctx.lineTo(4, 4)
+        ctx.moveTo(-4, 4)
+        ctx.lineTo(4, -4)
+        ctx.stroke()
         break
     }
     
@@ -2379,13 +2611,6 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
         {tool} Mode
       </div>
 
-      {/* History indicator */}
-      {history.length > 1 && (
-        <div className="absolute bottom-4 left-24 z-10 bg-card px-3 py-1 rounded-lg text-sm neomorphism">
-          History: {historyIndex + 1}/{history.length}
-        </div>
-      )}
-
       {/* Canvas Container */}
       <div
         className={`w-full h-full transition-all duration-200 ${
@@ -2460,29 +2685,34 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
         </div>
       )}
 
-      {/* Component Properties Panel */}
-      {selectedComponent && (
-        <Card className="absolute top-16 right-4 w-64 p-4 neomorphism z-20 shadow-lg">
-          <h3 className="font-medium mb-3 flex items-center gap-2 text-sm">
-            <Settings className="h-4 w-4" />
-            Component Properties
-          </h3>
+      {/* Component Edit Panel - Restored for edit icon functionality */}
+      {isEditingComponent && selectedComponent && (
+        <Card className="absolute top-16 right-4 w-72 p-4 neomorphism z-20 shadow-lg">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-medium flex items-center gap-2 text-sm">
+              <Settings className="h-4 w-4" />
+              Edit Component
+            </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsEditingComponent(false)}
+              className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+            >
+              ×
+            </Button>
+          </div>
           <div className="space-y-3">
             <div>
               <label className="text-xs text-muted-foreground">Label</label>
               <Input
                 value={selectedComponent.label}
                 onChange={(e) => {
-                  setComponents((prev) =>
-                    prev.map((c) => (c.id === selectedComponent.id ? { ...c, label: e.target.value } : c)),
-                  )
+                  setComponents((prev) => prev.map((c) => (c.id === selectedComponent.id ? { ...c, label: e.target.value } : c)))
                   setSelectedComponent({ ...selectedComponent, label: e.target.value })
                 }}
                 className="h-8 text-sm focus:border-primary/50"
-                placeholder="Component label"
-                data-component-input="label"
-                onFocus={() => console.log('Component label input focused')}
-                onBlur={() => console.log('Component label input blurred')}
+                placeholder="Component name"
               />
             </div>
             <div>
@@ -2490,16 +2720,11 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
               <Input
                 value={selectedComponent.type}
                 onChange={(e) => {
-                  setComponents((prev) =>
-                    prev.map((c) => (c.id === selectedComponent.id ? { ...c, type: e.target.value } : c)),
-                  )
+                  setComponents((prev) => prev.map((c) => (c.id === selectedComponent.id ? { ...c, type: e.target.value } : c)))
                   setSelectedComponent({ ...selectedComponent, type: e.target.value })
                 }}
                 className="h-8 text-sm focus:border-primary/50"
                 placeholder="Component type"
-                data-component-input="type"
-                onFocus={() => console.log('Component type input focused')}
-                onBlur={() => console.log('Component type input blurred')}
               />
             </div>
             <div>
@@ -2507,18 +2732,15 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
               <Textarea
                 value={selectedComponent.description || ""}
                 onChange={(e) => {
-                  setComponents((prev) =>
-                    prev.map((c) => (c.id === selectedComponent.id ? { ...c, description: e.target.value } : c)),
-                  )
+                  setComponents((prev) => prev.map((c) => (c.id === selectedComponent.id ? { ...c, description: e.target.value } : c)))
                   setSelectedComponent({ ...selectedComponent, description: e.target.value })
                 }}
                 className="h-16 text-sm resize-none focus:border-primary/50"
-                placeholder="Component description"
-                data-component-input="description"
-                onFocus={() => console.log('Component description input focused')}
-                onBlur={() => console.log('Component description input blurred')}
+                placeholder="Component description..."
               />
             </div>
+            
+            {/* Size controls */}
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="text-xs text-muted-foreground">Width</label>
@@ -2531,8 +2753,8 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
                     setSelectedComponent({ ...selectedComponent, width })
                   }}
                   className="h-8 text-sm focus:border-primary/50"
-                  min={40}
-                  step={5}
+                  min={80}
+                  step={10}
                 />
               </div>
               <div>
@@ -2573,58 +2795,32 @@ export function ArchitectureCanvas({ architecture, isGenerating, onArchitectureC
               </select>
             </div>
             
-            {selectedComponent.technologies && (
-              <div>
-                <label className="text-xs text-muted-foreground">Technologies</label>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {selectedComponent.technologies.map((tech, index) => (
-                    <Badge key={index} variant="outline" className="text-xs px-2 py-0.5">
-                      {tech}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {/* Add a color preview */}
-          <div className="mt-3 pt-3 border-t border-border">
-            <h4 className="text-xs font-medium text-muted-foreground mb-2">Color Scheme</h4>
-            <div className="grid grid-cols-2 gap-x-2 gap-y-1">
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: getCategoryColor(selectedComponent, 'base') }}></div>
-                <span className="text-xs text-muted-foreground">Base</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: getCategoryColor(selectedComponent, 'hover') }}></div>
-                <span className="text-xs text-muted-foreground">Hover</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: getCategoryColor(selectedComponent, 'selected') }}></div>
-                <span className="text-xs text-muted-foreground">Selected</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: getCategoryColor(selectedComponent, 'border') }}></div>
-                <span className="text-xs text-muted-foreground">Border</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: getCategoryColor(selectedComponent, 'highlight') }}></div>
-                <span className="text-xs text-muted-foreground">Highlight</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: getCategoryColor(selectedComponent, 'icon') }}></div>
-                <span className="text-xs text-muted-foreground">Icon</span>
-              </div>
-            </div>
-            <div className="mt-3 pt-2 border-t border-border">
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "#ffffff" }}></div>
-                <span className="text-xs text-muted-foreground">Text</span>
-              </div>
+            {/* Save/Cancel buttons */}
+            <div className="flex gap-2 pt-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setIsEditingComponent(false)}
+                className="flex-1 h-8 text-xs"
+              >
+                Cancel
+              </Button>
+              <Button 
+                size="sm" 
+                onClick={() => {
+                  setIsEditingComponent(false)
+                  saveToHistory() // Save changes to history
+                }}
+                className="flex-1 h-8 text-xs"
+              >
+                Save
+              </Button>
             </div>
           </div>
         </Card>
       )}
+
+
 
       {/* Connection Properties Panel */}
       {selectedConnection && (
