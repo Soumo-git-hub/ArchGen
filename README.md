@@ -239,7 +239,7 @@ Validated against AWS Well-Architected guidance, common patterns, and public clo
 ## Support
 - Issues: use the repository issues tracker
 - Discussions: start a thread in Discussions
-- Email: your.email@domain.com
+- Email: deysoumyadyuti@gmail.com
 
 ## Acknowledgments
 - Google Gemini for generation
